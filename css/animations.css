@@ -1,0 +1,405 @@
+/* Animations and Effects */
+
+/* Blink animation for timer warning */
+@keyframes blink {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Pulse animation for ready status */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(1.05);
+    }
+}
+
+/* Slide in animation for toasts */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Slide out animation for toasts */
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.toast.removing {
+    animation: slideOut 0.3s ease-in forwards;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Fade out animation */
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+/* Glitch effect */
+@keyframes glitch {
+    0% {
+        transform: translate(0);
+    }
+    20% {
+        transform: translate(-2px, 2px);
+    }
+    40% {
+        transform: translate(-2px, -2px);
+    }
+    60% {
+        transform: translate(2px, 2px);
+    }
+    80% {
+        transform: translate(2px, -2px);
+    }
+    100% {
+        transform: translate(0);
+    }
+}
+
+.glitch {
+    animation: glitch 0.3s ease-in-out;
+}
+
+/* Typing cursor effect */
+@keyframes cursor {
+    0%, 100% {
+        border-color: var(--primary-color);
+    }
+    50% {
+        border-color: transparent;
+    }
+}
+
+.typing-cursor::after {
+    content: '_';
+    animation: cursor 1s infinite;
+}
+
+/* Score reveal animation */
+@keyframes scoreReveal {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.score-reveal {
+    animation: scoreReveal 0.3s ease-out forwards;
+}
+
+/* Stagger children animation */
+.stagger-children > * {
+    opacity: 0;
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(7) { animation-delay: 0.35s; }
+.stagger-children > *:nth-child(8) { animation-delay: 0.4s; }
+.stagger-children > *:nth-child(9) { animation-delay: 0.45s; }
+.stagger-children > *:nth-child(10) { animation-delay: 0.5s; }
+.stagger-children > *:nth-child(11) { animation-delay: 0.55s; }
+.stagger-children > *:nth-child(12) { animation-delay: 0.6s; }
+
+/* Letter reveal animation */
+@keyframes letterReveal {
+    0% {
+        transform: scale(3) rotate(0deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.5) rotate(360deg);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1) rotate(720deg);
+        opacity: 1;
+    }
+}
+
+.letter-reveal {
+    animation: letterReveal 0.8s ease-out forwards;
+}
+
+/* Winner celebration */
+@keyframes celebration {
+    0%, 100% {
+        transform: scale(1);
+        filter: hue-rotate(0deg);
+    }
+    25% {
+        transform: scale(1.05);
+        filter: hue-rotate(90deg);
+    }
+    50% {
+        transform: scale(1);
+        filter: hue-rotate(180deg);
+    }
+    75% {
+        transform: scale(1.05);
+        filter: hue-rotate(270deg);
+    }
+}
+
+.celebration {
+    animation: celebration 2s infinite;
+}
+
+/* Shake animation for errors */
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    20%, 60% {
+        transform: translateX(-5px);
+    }
+    40%, 80% {
+        transform: translateX(5px);
+    }
+}
+
+.shake {
+    animation: shake 0.4s ease-in-out;
+}
+
+/* Loading dots animation */
+@keyframes loadingDots {
+    0% {
+        content: '.';
+    }
+    33% {
+        content: '..';
+    }
+    66% {
+        content: '...';
+    }
+}
+
+.loading::after {
+    content: '.';
+    animation: loadingDots 1.5s infinite;
+}
+
+/* Screen transition */
+.screen-transition-enter {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.screen-transition-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+.screen-transition-exit {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.screen-transition-exit-active {
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.3s ease-in, transform 0.3s ease-in;
+}
+
+/* Vote animation */
+@keyframes voteUp {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes voteDown {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(5px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+.vote-up {
+    animation: voteUp 0.2s ease-out;
+}
+
+.vote-down {
+    animation: voteDown 0.2s ease-out;
+}
+
+/* Timer urgency animations */
+@keyframes urgentPulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+.timer-urgent {
+    animation: urgentPulse 0.5s infinite;
+}
+
+/* Player join/leave effects */
+@keyframes playerJoin {
+    0% {
+        opacity: 0;
+        transform: translateX(-20px);
+        background-color: rgba(0, 255, 65, 0.3);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+        background-color: transparent;
+    }
+}
+
+@keyframes playerLeave {
+    0% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+}
+
+.player-join {
+    animation: playerJoin 0.5s ease-out;
+}
+
+.player-leave {
+    animation: playerLeave 0.3s ease-in forwards;
+}
+
+/* Ready button bounce */
+@keyframes readyBounce {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.ready-bounce {
+    animation: readyBounce 0.3s ease-out;
+}
+
+/* Flicker effect for "power on" */
+@keyframes flicker {
+    0% {
+        opacity: 0.1;
+    }
+    2% {
+        opacity: 1;
+    }
+    4% {
+        opacity: 0.1;
+    }
+    8% {
+        opacity: 1;
+    }
+    70% {
+        opacity: 0.7;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.flicker {
+    animation: flicker 0.5s ease-out;
+}
+
+/* Count animation for scores */
+@keyframes countUp {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.count-up {
+    animation: countUp 0.5s ease-out;
+}
+
+/* CRT turn off effect */
+@keyframes crtOff {
+    0% {
+        transform: scale(1, 1);
+        filter: brightness(1);
+    }
+    50% {
+        transform: scale(1, 0.005);
+        filter: brightness(2);
+    }
+    100% {
+        transform: scale(0, 0);
+        filter: brightness(0);
+    }
+}
+
+.crt-off {
+    animation: crtOff 0.3s ease-in forwards;
+}
