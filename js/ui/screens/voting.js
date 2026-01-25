@@ -1,5 +1,5 @@
 /**
- * Voting Screen - Display all answers, upvote/downvote
+ * Voting Screen - Display answers one category at a time
  */
 
 import store from "../../state/store.js";
@@ -25,16 +25,20 @@ class VotingScreen {
     this.elements = {
       votingContainer: document.getElementById("voting-container"),
       finishBtn: document.getElementById("btn-finish-voting"),
+      timerValue: document.getElementById("voting-timer-value"),
+      timerDisplay: document.getElementById("voting-timer-display"),
+      readyStatus: document.getElementById("voting-ready-status"),
+      progressIndicator: document.getElementById("voting-progress"),
     };
   }
 
   bindEvents() {
-    // Finish voting
+    // Ready button (was "finish voting")
     this.elements.finishBtn?.addEventListener("click", () => {
       if (store.get("isHost")) {
-        host.finishVoting();
+        host.finishVotingCategory();
       } else {
-        client.finishVoting();
+        client.finishVotingCategory();
       }
     });
   }
@@ -48,9 +52,30 @@ class VotingScreen {
       }
     });
 
+    // Re-render when category changes
+    store.subscribe("currentVotingCategoryIndex", (index, oldIndex) => {
+      if (store.get("gamePhase") === "VOTING" && index !== oldIndex) {
+        this.renderVotingUI();
+      }
+    });
+
     // Update vote counts when votes change
     store.subscribe("votes", (votes) => {
       this.updateVoteCounts(votes);
+    });
+
+    // Update timer display
+    store.subscribe("timerRemaining", (seconds) => {
+      if (store.get("gamePhase") === "VOTING") {
+        this.updateTimer(seconds);
+      }
+    });
+
+    // Update ready status
+    store.subscribe("players", (players) => {
+      if (store.get("gamePhase") === "VOTING") {
+        this.updateReadyStatus(players);
+      }
     });
 
     // Update finish button state
@@ -60,7 +85,7 @@ class VotingScreen {
           this.elements.finishBtn.textContent = "WAITING...";
           this.elements.finishBtn.disabled = true;
         } else {
-          this.elements.finishBtn.textContent = "DONE VOTING";
+          this.elements.finishBtn.textContent = "READY";
           this.elements.finishBtn.disabled = false;
         }
       }
@@ -73,10 +98,22 @@ class VotingScreen {
     }
 
     const categories = store.get("categories");
+    const currentIndex = store.get("currentVotingCategoryIndex");
     const answers = store.get("answers");
     const players = store.get("players");
     const localPlayerId = store.get("localPlayer.id");
     const letter = store.get("currentLetter");
+
+    // Update progress indicator
+    if (this.elements.progressIndicator) {
+      this.elements.progressIndicator.textContent = `CATEGORY ${currentIndex + 1} OF ${categories.length}`;
+    }
+
+    // Update ready status
+    this.updateReadyStatus(players);
+
+    // Update timer
+    this.updateTimer(store.get("timerRemaining"));
 
     // Build player lookup
     const playerNames = {};
@@ -84,47 +121,53 @@ class VotingScreen {
       playerNames[p.id] = p.name;
     });
 
-    // Build HTML for each category
+    // Get current category
+    const category = categories[currentIndex];
+    if (!category) {
+      this.elements.votingContainer.innerHTML = '<p class="no-answers">No more categories.</p>';
+      return;
+    }
+
+    // Collect all answers for this category
+    const categoryAnswers = [];
+    for (const [playerId, playerAnswers] of Object.entries(answers)) {
+      const answer = playerAnswers[currentIndex];
+      if (answer && answer.trim()) {
+        categoryAnswers.push({
+          playerId,
+          playerName: playerNames[playerId] || "Unknown",
+          answer: answer.trim(),
+          isOwn: playerId === localPlayerId,
+        });
+      }
+    }
+
+    // Build HTML for current category
     let html = "";
 
-    categories.forEach((category, categoryIndex) => {
-      // Collect all answers for this category
-      const categoryAnswers = [];
-
-      for (const [playerId, playerAnswers] of Object.entries(answers)) {
-        const answer = playerAnswers[categoryIndex];
-        if (answer && answer.trim()) {
-          categoryAnswers.push({
-            playerId,
-            playerName: playerNames[playerId] || "Unknown",
-            answer: answer.trim(),
-            isOwn: playerId === localPlayerId,
-          });
-        }
-      }
-
-      if (categoryAnswers.length === 0) {
-        return; // Skip categories with no answers
-      }
-
-      html += `
-                <div class="voting-category" data-category-index="${categoryIndex}">
-                    <h4>${categoryIndex + 1}. ${this.escapeHtml(category)} (${letter})</h4>
-                    <div class="voting-answers">
-                        ${categoryAnswers.map((a) => this.renderVoteCard(categoryIndex, a)).join("")}
-                    </div>
-                </div>
-            `;
-    });
-
-    if (!html) {
-      html = '<p class="no-answers">No answers submitted this round.</p>';
+    if (categoryAnswers.length === 0) {
+      html = '<p class="no-answers">No answers for this category.</p>';
+    } else {
+      html = `
+        <div class="voting-category" data-category-index="${currentIndex}">
+          <h4>${currentIndex + 1}. ${this.escapeHtml(category)} (${letter})</h4>
+          <div class="voting-answers">
+            ${categoryAnswers.map((a) => this.renderVoteCard(currentIndex, a)).join("")}
+          </div>
+        </div>
+      `;
     }
 
     this.elements.votingContainer.innerHTML = html;
 
     // Bind vote button events
     this.bindVoteButtons();
+
+    // Reset button state for new category
+    if (this.elements.finishBtn) {
+      this.elements.finishBtn.textContent = "READY";
+      this.elements.finishBtn.disabled = false;
+    }
   }
 
   renderVoteCard(categoryIndex, answerData) {
@@ -132,18 +175,18 @@ class VotingScreen {
     const answerId = `${categoryIndex}-${this.normalizeAnswer(answer)}`;
 
     return `
-            <div class="vote-card ${isOwn ? "own-answer" : ""}" data-answer-id="${answerId}" data-category="${categoryIndex}" data-answer="${this.escapeAttr(answer)}">
-                <div class="vote-answer">
-                    <span class="answer-text">${this.escapeHtml(answer)}</span>
-                    <span class="vote-player">(${this.escapeHtml(playerName)})</span>
-                </div>
-                <div class="vote-controls">
-                    <button class="vote-btn upvote" data-vote="up" ${isOwn ? "disabled" : ""}>+</button>
-                    <span class="vote-count neutral" data-count>0</span>
-                    <button class="vote-btn downvote" data-vote="down" ${isOwn ? "disabled" : ""}>-</button>
-                </div>
-            </div>
-        `;
+      <div class="vote-card ${isOwn ? "own-answer" : ""}" data-answer-id="${answerId}" data-category="${categoryIndex}" data-answer="${this.escapeAttr(answer)}">
+        <div class="vote-answer">
+          <span class="answer-text">${this.escapeHtml(answer)}</span>
+          <span class="vote-player">(${this.escapeHtml(playerName)})</span>
+        </div>
+        <div class="vote-controls">
+          <button class="vote-btn upvote" data-vote="up" ${isOwn ? "disabled" : ""}>+</button>
+          <span class="vote-count neutral" data-count>0</span>
+          <button class="vote-btn downvote" data-vote="down" ${isOwn ? "disabled" : ""}>-</button>
+        </div>
+      </div>
+    `;
   }
 
   bindVoteButtons() {
@@ -227,6 +270,32 @@ class VotingScreen {
         }
       }
     });
+  }
+
+  updateTimer(seconds) {
+    if (this.elements.timerValue) {
+      this.elements.timerValue.textContent = seconds;
+    }
+
+    if (this.elements.timerDisplay) {
+      this.elements.timerDisplay.classList.remove("urgent", "warning");
+      if (seconds <= 3) {
+        this.elements.timerDisplay.classList.add("urgent");
+      } else if (seconds <= 5) {
+        this.elements.timerDisplay.classList.add("warning");
+      }
+    }
+  }
+
+  updateReadyStatus(players) {
+    if (!this.elements.readyStatus) {
+      return;
+    }
+
+    const readyCount = players.filter((p) => p.isReady).length;
+    const totalCount = players.length;
+
+    this.elements.readyStatus.textContent = `${readyCount}/${totalCount} READY`;
   }
 
   normalizeAnswer(answer) {

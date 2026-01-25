@@ -34,6 +34,12 @@ export const SETTINGS = {
     DEFAULT: 180,
     STEP: 30,
   },
+  VOTING_TIMER: {
+    MIN: 5,
+    MAX: 30,
+    DEFAULT: 10,
+    STEP: 5,
+  },
 };
 
 // Timer sync interval (ms)
@@ -71,6 +77,8 @@ export const MSG_TYPES = {
   VOTE: "VOTE",
   VOTE_UPDATE: "VOTE_UPDATE",
   VOTING_DONE: "VOTING_DONE",
+  VOTING_CATEGORY_START: "VOTING_CATEGORY_START",
+  VOTING_CATEGORY_READY: "VOTING_CATEGORY_READY",
 
   // Results
   ROUND_RESULTS: "ROUND_RESULTS",

@@ -300,6 +300,39 @@ body {
   margin-bottom: 2rem;
 }
 
+.voting-header-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.voting-progress {
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+}
+
+.voting-header .timer-display {
+  font-size: 1.2rem;
+}
+
+.voting-header .timer-display.urgent {
+  color: #ff4444;
+  animation: blink 0.25s infinite;
+}
+
+.voting-header .timer-display.warning {
+  color: #ffaa00;
+  animation: blink 0.5s infinite;
+}
+
+.voting-header .ready-status {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
 .voting-instructions {
   margin-top: 0.5rem;
   font-size: 0.7rem;

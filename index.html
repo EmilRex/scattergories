@@ -131,6 +131,18 @@
                     <button class="retro-btn small" data-setting="timer" data-delta="30">+</button>
                   </div>
                 </div>
+                <div class="setting-row">
+                  <label>VOTING (SEC)</label>
+                  <div class="setting-control">
+                    <button class="retro-btn small" data-setting="votingTimer" data-delta="-5">
+                      -
+                    </button>
+                    <span id="setting-voting-timer">10</span>
+                    <button class="retro-btn small" data-setting="votingTimer" data-delta="5">
+                      +
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -172,6 +184,13 @@
           <div class="screen-content">
             <div class="voting-header">
               <h2>VOTE ON ANSWERS</h2>
+              <div class="voting-header-info">
+                <div id="voting-timer-display" class="timer-display">
+                  <span id="voting-timer-value">10</span>
+                </div>
+                <div id="voting-progress" class="voting-progress">CATEGORY 1 OF 12</div>
+                <div id="voting-ready-status" class="ready-status">0/2 READY</div>
+              </div>
               <p class="voting-instructions">
                 Vote on each answer. Entries need net positive votes to score.
               </p>
@@ -180,7 +199,7 @@
             <div id="voting-container" class="voting-container"></div>
 
             <div class="voting-actions">
-              <button id="btn-finish-voting" class="retro-btn primary large">DONE VOTING</button>
+              <button id="btn-finish-voting" class="retro-btn primary large">READY</button>
             </div>
           </div>
         </section>

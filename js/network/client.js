@@ -110,6 +110,16 @@ class Client {
       gameState.transition(PHASES.VOTING);
     });
 
+    // Handle voting category start
+    peerManager.on(MSG_TYPES.VOTING_CATEGORY_START, (data) => {
+      store.update({
+        currentVotingCategoryIndex: data.categoryIndex,
+        timerRemaining: data.timerSeconds,
+        timerRunning: true,
+      });
+      store.merge("localPlayer", { isReady: false });
+    });
+
     // Handle vote updates
     peerManager.on(MSG_TYPES.VOTE_UPDATE, (data) => {
       store.set("votes", data.votes);
@@ -214,13 +224,24 @@ class Client {
   }
 
   /**
-   * Mark voting as done
+   * Mark voting as done (legacy)
    */
   finishVoting() {
     store.merge("localPlayer", { isReady: true });
 
     peerManager.send(this.hostId, {
       type: MSG_TYPES.VOTING_DONE,
+    });
+  }
+
+  /**
+   * Mark ready for current voting category
+   */
+  finishVotingCategory() {
+    store.merge("localPlayer", { isReady: true });
+
+    peerManager.send(this.hostId, {
+      type: MSG_TYPES.VOTING_CATEGORY_READY,
     });
   }
 

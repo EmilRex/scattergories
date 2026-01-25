@@ -31,6 +31,7 @@ class LobbyScreen {
       roundsSetting: document.getElementById("setting-rounds"),
       categoriesSetting: document.getElementById("setting-categories"),
       timerSetting: document.getElementById("setting-timer"),
+      votingTimerSetting: document.getElementById("setting-voting-timer"),
       readyBtn: document.getElementById("btn-ready"),
       readyStatus: document.getElementById("ready-status"),
     };
@@ -62,17 +63,23 @@ class LobbyScreen {
 
         const setting = btn.dataset.setting;
         const delta = parseInt(btn.dataset.delta);
-        const currentValue = store.get(
-          `settings.${setting === "timer" ? "timerSeconds" : setting === "categories" ? "categoriesPerRound" : setting}`
-        );
 
-        const settingKey =
-          setting === "timer"
-            ? "timerSeconds"
-            : setting === "categories"
-              ? "categoriesPerRound"
-              : "rounds";
+        let settingKey;
+        switch (setting) {
+          case "timer":
+            settingKey = "timerSeconds";
+            break;
+          case "categories":
+            settingKey = "categoriesPerRound";
+            break;
+          case "votingTimer":
+            settingKey = "votingTimerSeconds";
+            break;
+          default:
+            settingKey = "rounds";
+        }
 
+        const currentValue = store.get(`settings.${settingKey}`);
         host.updateSettings(settingKey, currentValue + delta);
       });
     });
@@ -102,6 +109,9 @@ class LobbyScreen {
       }
       if (this.elements.timerSetting) {
         this.elements.timerSetting.textContent = settings.timerSeconds;
+      }
+      if (this.elements.votingTimerSetting) {
+        this.elements.votingTimerSetting.textContent = settings.votingTimerSeconds;
       }
     });
 

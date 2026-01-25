@@ -23,6 +23,7 @@ const initialState = {
     rounds: 3,
     categoriesPerRound: 12,
     timerSeconds: 180,
+    votingTimerSeconds: 10,
   },
 
   // Game state
@@ -35,6 +36,9 @@ const initialState = {
   // Timer state
   timerRemaining: 0,
   timerRunning: false,
+
+  // Voting state
+  currentVotingCategoryIndex: 0,
 
   // Answers: { playerId: { categoryIndex: answer } }
   answers: {},
@@ -202,6 +206,7 @@ class Store {
       categories: this.state.categories,
       timerRemaining: this.state.timerRemaining,
       timerRunning: this.state.timerRunning,
+      currentVotingCategoryIndex: this.state.currentVotingCategoryIndex,
       answers: this.state.answers,
       votes: this.state.votes,
       scores: this.state.scores,

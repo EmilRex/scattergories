@@ -16,6 +16,8 @@ class Host {
   constructor() {
     this.timerInterval = null;
     this.syncInterval = null;
+    this.votingTimerInterval = null;
+    this.votingSyncInterval = null;
     this.usedLetters = [];
   }
 
@@ -133,9 +135,14 @@ class Host {
       this.handleVote(fromPeerId, data);
     });
 
-    // Handle voting done
+    // Handle voting done (legacy, kept for compatibility)
     peerManager.on(MSG_TYPES.VOTING_DONE, (data, fromPeerId) => {
       this.handleVotingDone(fromPeerId);
+    });
+
+    // Handle voting category ready
+    peerManager.on(MSG_TYPES.VOTING_CATEGORY_READY, (data, fromPeerId) => {
+      this.handleVotingCategoryReady(fromPeerId);
     });
 
     // Handle next round ready
@@ -240,6 +247,9 @@ class Host {
       case "timerSeconds":
         value = Math.max(SETTINGS.TIMER.MIN, Math.min(SETTINGS.TIMER.MAX, value));
         break;
+      case "votingTimerSeconds":
+        value = Math.max(SETTINGS.VOTING_TIMER.MIN, Math.min(SETTINGS.VOTING_TIMER.MAX, value));
+        break;
     }
 
     settings[key] = value;
@@ -290,15 +300,13 @@ class Host {
     }
 
     // Handle based on current phase
+    // Note: VOTING phase is now handled per-category via checkVotingCategoryReady()
     switch (phase) {
       case PHASES.LOBBY:
         this.startGame();
         break;
       case PHASES.ANSWERING:
         this.endAnswerPhase();
-        break;
-      case PHASES.VOTING:
-        this.endVotingPhase();
         break;
       case PHASES.RESULTS:
         this.proceedFromResults();
@@ -457,6 +465,9 @@ class Host {
     store.set("players", players);
     store.merge("localPlayer", { isReady: false });
 
+    // Reset voting category index
+    store.set("currentVotingCategoryIndex", 0);
+
     // Transition to voting
     gameState.transition(PHASES.VOTING);
 
@@ -467,6 +478,141 @@ class Host {
     });
 
     this.broadcastState();
+
+    // Start per-category voting
+    this.startVotingCategory(0);
+  }
+
+  /**
+   * Start voting for a specific category
+   */
+  startVotingCategory(index) {
+    const categories = store.get("categories");
+    const settings = store.get("settings");
+
+    // Check if we have more categories to vote on
+    if (index >= categories.length) {
+      this.endVotingPhase();
+      return;
+    }
+
+    // Reset ready states for this category
+    const players = store.get("players").map((p) => ({ ...p, isReady: false }));
+    store.set("players", players);
+    store.merge("localPlayer", { isReady: false });
+
+    // Set timer
+    store.update({
+      currentVotingCategoryIndex: index,
+      timerRemaining: settings.votingTimerSeconds,
+      timerRunning: true,
+    });
+
+    // Broadcast category start
+    peerManager.broadcast({
+      type: MSG_TYPES.VOTING_CATEGORY_START,
+      categoryIndex: index,
+      timerSeconds: settings.votingTimerSeconds,
+    });
+
+    // Start voting timer
+    this.startVotingTimer();
+  }
+
+  /**
+   * Start the voting countdown timer
+   */
+  startVotingTimer() {
+    this.stopVotingTimer();
+
+    const startTime = Date.now();
+    const duration = store.get("settings").votingTimerSeconds * 1000;
+
+    this.votingTimerInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, Math.ceil((duration - elapsed) / 1000));
+
+      store.set("timerRemaining", remaining);
+
+      if (remaining <= 0) {
+        this.advanceVotingCategory();
+      }
+    }, 100);
+
+    // Sync timer with clients periodically
+    this.votingSyncInterval = setInterval(() => {
+      peerManager.broadcast({
+        type: MSG_TYPES.TIMER_SYNC,
+        remaining: store.get("timerRemaining"),
+      });
+    }, TIMER_SYNC_INTERVAL);
+  }
+
+  /**
+   * Stop the voting timer
+   */
+  stopVotingTimer() {
+    if (this.votingTimerInterval) {
+      clearInterval(this.votingTimerInterval);
+      this.votingTimerInterval = null;
+    }
+    if (this.votingSyncInterval) {
+      clearInterval(this.votingSyncInterval);
+      this.votingSyncInterval = null;
+    }
+    store.set("timerRunning", false);
+  }
+
+  /**
+   * Advance to next voting category
+   */
+  advanceVotingCategory() {
+    this.stopVotingTimer();
+
+    const currentIndex = store.get("currentVotingCategoryIndex");
+    const categories = store.get("categories");
+
+    if (currentIndex + 1 < categories.length) {
+      this.startVotingCategory(currentIndex + 1);
+    } else {
+      this.endVotingPhase();
+    }
+  }
+
+  /**
+   * Handle player ready for current voting category
+   */
+  handleVotingCategoryReady(playerId) {
+    const players = store.get("players");
+    const player = players.find((p) => p.id === playerId);
+    if (player) {
+      player.isReady = true;
+      store.set("players", [...players]);
+      this.broadcastState();
+
+      // Check if all players are ready for this category
+      this.checkVotingCategoryReady();
+    }
+  }
+
+  /**
+   * Check if all players are ready to advance to next category
+   */
+  checkVotingCategoryReady() {
+    const players = store.get("players");
+    const allReady = players.every((p) => p.isReady);
+
+    if (allReady && players.length >= 2) {
+      this.advanceVotingCategory();
+    }
+  }
+
+  /**
+   * Mark host as ready for current voting category
+   */
+  finishVotingCategory() {
+    const hostId = store.get("localPlayer").id;
+    this.handleVotingCategoryReady(hostId);
   }
 
   /**
@@ -658,6 +804,7 @@ class Host {
    */
   destroy() {
     this.stopTimer();
+    this.stopVotingTimer();
     peerManager.destroy();
   }
 }
