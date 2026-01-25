@@ -14,7 +14,7 @@ export function createMockPeerManager() {
     _broadcasts: [],
 
     async initialize(customId = null) {
-      const id = customId || 'mock-' + Math.random().toString(36).slice(2, 8);
+      const id = customId || "mock-" + Math.random().toString(36).slice(2, 8);
       this.peer = { id, destroyed: false };
       return id;
     },
@@ -88,19 +88,19 @@ export function createMockPeerManager() {
       const conn = createMockConnection(peerId, this.peer?.id);
       this.connections.set(peerId, conn);
       conn.open = true;
-      this.emit('connection', { peerId, conn });
+      this.emit("connection", { peerId, conn });
       return conn;
     },
 
     simulateDisconnection(peerId) {
       this.connections.delete(peerId);
-      this.emit('disconnection', { peerId });
+      this.emit("disconnection", { peerId });
     },
 
     clearTestData() {
       this._sentMessages = [];
       this._broadcasts = [];
-    }
+    },
   };
 }
 
@@ -129,10 +129,10 @@ export function createMockConnection(peerId, localId) {
 
     close() {
       this.open = false;
-      if (this._handlers['close']) {
-        this._handlers['close'].forEach(h => h());
+      if (this._handlers["close"]) {
+        this._handlers["close"].forEach((h) => h());
       }
-    }
+    },
   };
 }
 
@@ -143,8 +143,8 @@ export function createConnectedPeerPair() {
   const hostPeer = createMockPeerManager();
   const clientPeer = createMockPeerManager();
 
-  const hostId = 'TEST01';
-  const clientId = 'client-123';
+  const hostId = "TEST01";
+  const clientId = "client-123";
 
   hostPeer.peer = { id: hostId, destroyed: false };
   clientPeer.peer = { id: clientId, destroyed: false };
@@ -196,5 +196,5 @@ export function createConnectedPeerPair() {
 export default {
   createMockPeerManager,
   createMockConnection,
-  createConnectedPeerPair
+  createConnectedPeerPair,
 };

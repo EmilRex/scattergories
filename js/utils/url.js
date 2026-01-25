@@ -8,8 +8,8 @@
  * @returns {string|null} Game ID or null if not present
  */
 export function getGameIdFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('game');
+  const params = new URLSearchParams(window.location.search);
+  return params.get("game");
 }
 
 /**
@@ -17,18 +17,18 @@ export function getGameIdFromUrl() {
  * @param {string} gameId - Game ID to set
  */
 export function setGameIdInUrl(gameId) {
-    const url = new URL(window.location.href);
-    url.searchParams.set('game', gameId);
-    window.history.replaceState({}, '', url.toString());
+  const url = new URL(window.location.href);
+  url.searchParams.set("game", gameId);
+  window.history.replaceState({}, "", url.toString());
 }
 
 /**
  * Remove game ID from URL
  */
 export function removeGameIdFromUrl() {
-    const url = new URL(window.location.href);
-    url.searchParams.delete('game');
-    window.history.replaceState({}, '', url.toString());
+  const url = new URL(window.location.href);
+  url.searchParams.delete("game");
+  window.history.replaceState({}, "", url.toString());
 }
 
 /**
@@ -37,11 +37,11 @@ export function removeGameIdFromUrl() {
  * @returns {string} Full URL with game ID
  */
 export function generateGameUrl(gameId) {
-    const url = new URL(window.location.href);
-    // Clear any existing hash
-    url.hash = '';
-    url.searchParams.set('game', gameId);
-    return url.toString();
+  const url = new URL(window.location.href);
+  // Clear any existing hash
+  url.hash = "";
+  url.searchParams.set("game", gameId);
+  return url.toString();
 }
 
 /**
@@ -50,27 +50,27 @@ export function generateGameUrl(gameId) {
  * @returns {Promise<boolean>} Whether copy succeeded
  */
 export async function copyGameUrlToClipboard(gameId) {
-    const url = generateGameUrl(gameId);
+  const url = generateGameUrl(gameId);
+  try {
+    await navigator.clipboard.writeText(url);
+    return true;
+  } catch {
+    // Fallback for older browsers
     try {
-        await navigator.clipboard.writeText(url);
-        return true;
-    } catch (e) {
-        // Fallback for older browsers
-        try {
-            const textArea = document.createElement('textarea');
-            textArea.value = url;
-            textArea.style.position = 'fixed';
-            textArea.style.opacity = '0';
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            return true;
-        } catch (e2) {
-            console.warn('Failed to copy to clipboard:', e2);
-            return false;
-        }
+      const textArea = document.createElement("textarea");
+      textArea.value = url;
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      return true;
+    } catch (e2) {
+      console.warn("Failed to copy to clipboard:", e2);
+      return false;
     }
+  }
 }
 
 /**
@@ -78,7 +78,7 @@ export async function copyGameUrlToClipboard(gameId) {
  * @returns {string} Current hash without the # symbol
  */
 export function getHash() {
-    return window.location.hash.slice(1) || '';
+  return window.location.hash.slice(1) || "";
 }
 
 /**
@@ -86,7 +86,7 @@ export function getHash() {
  * @param {string} hash - Hash to set (without # symbol)
  */
 export function setHash(hash) {
-    window.location.hash = hash;
+  window.location.hash = hash;
 }
 
 /**
@@ -94,21 +94,21 @@ export function setHash(hash) {
  * @returns {string} 6-character alphanumeric ID
  */
 export function generateGameId() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Excluding similar-looking chars
-    let result = '';
-    for (let i = 0; i < 6; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Excluding similar-looking chars
+  let result = "";
+  for (let i = 0; i < 6; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
 }
 
 export default {
-    getGameIdFromUrl,
-    setGameIdInUrl,
-    removeGameIdFromUrl,
-    generateGameUrl,
-    copyGameUrlToClipboard,
-    getHash,
-    setHash,
-    generateGameId
+  getGameIdFromUrl,
+  setGameIdInUrl,
+  removeGameIdFromUrl,
+  generateGameUrl,
+  copyGameUrlToClipboard,
+  getHash,
+  setHash,
+  generateGameId,
 };

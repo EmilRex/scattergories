@@ -1,214 +1,238 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Scattergories</title>
 
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- Styles -->
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/retro.css">
-    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/retro.css" />
+    <link rel="stylesheet" href="css/animations.css" />
 
     <!-- PeerJS -->
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-</head>
-<body>
+  </head>
+  <body>
     <div id="app">
-        <!-- Scanline overlay -->
-        <div class="scanlines"></div>
+      <!-- Scanline overlay -->
+      <div class="scanlines"></div>
 
-        <!-- Header -->
-        <header class="game-header">
-            <h1 class="game-title">SCATTERGORIES</h1>
-            <div class="header-info">
-                <span id="connection-status" class="status-indicator"></span>
-                <span id="player-name-display"></span>
-            </div>
-        </header>
+      <!-- Header -->
+      <header class="game-header">
+        <h1 class="game-title">SCATTERGORIES</h1>
+        <div class="header-info">
+          <span id="connection-status" class="status-indicator"></span>
+          <span id="player-name-display"></span>
+        </div>
+      </header>
 
-        <!-- Main content area - screens will be rendered here -->
-        <main id="screen-container">
-            <!-- Home Screen -->
-            <section id="screen-home" class="screen active">
-                <div class="screen-content centered">
-                    <div class="title-art">
-                        <pre class="ascii-art">
+      <!-- Main content area - screens will be rendered here -->
+      <main id="screen-container">
+        <!-- Home Screen -->
+        <section id="screen-home" class="screen active">
+          <div class="screen-content centered">
+            <div class="title-art">
+              <pre class="ascii-art">
 ╔═══════════════════════════════════╗
 ║   ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄   ║
 ║   █ SCATTERGORIES ONLINE █   ║
 ║   ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀   ║
 ╚═══════════════════════════════════╝
-                        </pre>
-                    </div>
+                        </pre
+              >
+            </div>
 
-                    <div class="home-actions">
-                        <div class="username-section">
-                            <label for="username-input">ENTER YOUR NAME</label>
-                            <input type="text" id="username-input" class="retro-input" maxlength="12" placeholder="PLAYER">
-                        </div>
+            <div class="home-actions">
+              <div class="username-section">
+                <label for="username-input">ENTER YOUR NAME</label>
+                <input
+                  type="text"
+                  id="username-input"
+                  class="retro-input"
+                  maxlength="12"
+                  placeholder="PLAYER"
+                />
+              </div>
 
-                        <div class="button-group">
-                            <button id="btn-create-game" class="retro-btn primary">CREATE GAME</button>
-                            <button id="btn-join-game" class="retro-btn secondary">JOIN GAME</button>
-                        </div>
+              <div class="button-group">
+                <button id="btn-create-game" class="retro-btn primary">CREATE GAME</button>
+                <button id="btn-join-game" class="retro-btn secondary">JOIN GAME</button>
+              </div>
 
-                        <div id="join-code-section" class="hidden">
-                            <label for="join-code-input">GAME CODE</label>
-                            <input type="text" id="join-code-input" class="retro-input" maxlength="20" placeholder="ABC123">
-                            <button id="btn-connect" class="retro-btn">CONNECT</button>
-                        </div>
-                    </div>
+              <div id="join-code-section" class="hidden">
+                <label for="join-code-input">GAME CODE</label>
+                <input
+                  type="text"
+                  id="join-code-input"
+                  class="retro-input"
+                  maxlength="20"
+                  placeholder="ABC123"
+                />
+                <button id="btn-connect" class="retro-btn">CONNECT</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Lobby Screen -->
+        <section id="screen-lobby" class="screen">
+          <div class="screen-content">
+            <div class="lobby-header">
+              <h2>GAME LOBBY</h2>
+              <div class="game-code-display">
+                <span>CODE:</span>
+                <span id="lobby-game-code" class="code-text"></span>
+                <button id="btn-copy-code" class="retro-btn small">COPY</button>
+              </div>
+            </div>
+
+            <div class="lobby-content">
+              <div class="players-panel">
+                <h3>PLAYERS</h3>
+                <ul id="player-list" class="player-list"></ul>
+              </div>
+
+              <div class="settings-panel" id="host-settings">
+                <h3>SETTINGS</h3>
+                <div class="setting-row">
+                  <label>ROUNDS</label>
+                  <div class="setting-control">
+                    <button class="retro-btn small" data-setting="rounds" data-delta="-1">-</button>
+                    <span id="setting-rounds">3</span>
+                    <button class="retro-btn small" data-setting="rounds" data-delta="1">+</button>
+                  </div>
                 </div>
-            </section>
-
-            <!-- Lobby Screen -->
-            <section id="screen-lobby" class="screen">
-                <div class="screen-content">
-                    <div class="lobby-header">
-                        <h2>GAME LOBBY</h2>
-                        <div class="game-code-display">
-                            <span>CODE:</span>
-                            <span id="lobby-game-code" class="code-text"></span>
-                            <button id="btn-copy-code" class="retro-btn small">COPY</button>
-                        </div>
-                    </div>
-
-                    <div class="lobby-content">
-                        <div class="players-panel">
-                            <h3>PLAYERS</h3>
-                            <ul id="player-list" class="player-list"></ul>
-                        </div>
-
-                        <div class="settings-panel" id="host-settings">
-                            <h3>SETTINGS</h3>
-                            <div class="setting-row">
-                                <label>ROUNDS</label>
-                                <div class="setting-control">
-                                    <button class="retro-btn small" data-setting="rounds" data-delta="-1">-</button>
-                                    <span id="setting-rounds">3</span>
-                                    <button class="retro-btn small" data-setting="rounds" data-delta="1">+</button>
-                                </div>
-                            </div>
-                            <div class="setting-row">
-                                <label>CATEGORIES</label>
-                                <div class="setting-control">
-                                    <button class="retro-btn small" data-setting="categories" data-delta="-1">-</button>
-                                    <span id="setting-categories">12</span>
-                                    <button class="retro-btn small" data-setting="categories" data-delta="1">+</button>
-                                </div>
-                            </div>
-                            <div class="setting-row">
-                                <label>TIMER (SEC)</label>
-                                <div class="setting-control">
-                                    <button class="retro-btn small" data-setting="timer" data-delta="-30">-</button>
-                                    <span id="setting-timer">180</span>
-                                    <button class="retro-btn small" data-setting="timer" data-delta="30">+</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="lobby-actions">
-                        <button id="btn-ready" class="retro-btn primary large">READY</button>
-                        <div id="ready-status" class="ready-status"></div>
-                    </div>
+                <div class="setting-row">
+                  <label>CATEGORIES</label>
+                  <div class="setting-control">
+                    <button class="retro-btn small" data-setting="categories" data-delta="-1">
+                      -
+                    </button>
+                    <span id="setting-categories">12</span>
+                    <button class="retro-btn small" data-setting="categories" data-delta="1">
+                      +
+                    </button>
+                  </div>
                 </div>
-            </section>
-
-            <!-- Answer Screen -->
-            <section id="screen-answer" class="screen">
-                <div class="screen-content">
-                    <div class="answer-header">
-                        <div class="round-info">
-                            <span>ROUND <span id="current-round">1</span>/<span id="total-rounds">3</span></span>
-                        </div>
-                        <div class="letter-display">
-                            <span class="letter-label">LETTER:</span>
-                            <span id="current-letter" class="big-letter">A</span>
-                        </div>
-                        <div id="timer-display" class="timer-display">
-                            <span id="timer-value">3:00</span>
-                        </div>
-                    </div>
-
-                    <div id="answer-grid" class="answer-grid"></div>
-
-                    <div class="answer-actions">
-                        <button id="btn-submit-answers" class="retro-btn primary large">DONE</button>
-                    </div>
+                <div class="setting-row">
+                  <label>TIMER (SEC)</label>
+                  <div class="setting-control">
+                    <button class="retro-btn small" data-setting="timer" data-delta="-30">-</button>
+                    <span id="setting-timer">180</span>
+                    <button class="retro-btn small" data-setting="timer" data-delta="30">+</button>
+                  </div>
                 </div>
-            </section>
+              </div>
+            </div>
 
-            <!-- Voting Screen -->
-            <section id="screen-voting" class="screen">
-                <div class="screen-content">
-                    <div class="voting-header">
-                        <h2>VOTE ON ANSWERS</h2>
-                        <p class="voting-instructions">Vote on each answer. Entries need net positive votes to score.</p>
-                    </div>
+            <div class="lobby-actions">
+              <button id="btn-ready" class="retro-btn primary large">READY</button>
+              <div id="ready-status" class="ready-status"></div>
+            </div>
+          </div>
+        </section>
 
-                    <div id="voting-container" class="voting-container"></div>
+        <!-- Answer Screen -->
+        <section id="screen-answer" class="screen">
+          <div class="screen-content">
+            <div class="answer-header">
+              <div class="round-info">
+                <span
+                  >ROUND <span id="current-round">1</span>/<span id="total-rounds">3</span></span
+                >
+              </div>
+              <div class="letter-display">
+                <span class="letter-label">LETTER:</span>
+                <span id="current-letter" class="big-letter">A</span>
+              </div>
+              <div id="timer-display" class="timer-display">
+                <span id="timer-value">3:00</span>
+              </div>
+            </div>
 
-                    <div class="voting-actions">
-                        <button id="btn-finish-voting" class="retro-btn primary large">DONE VOTING</button>
-                    </div>
-                </div>
-            </section>
+            <div id="answer-grid" class="answer-grid"></div>
 
-            <!-- Results Screen -->
-            <section id="screen-results" class="screen">
-                <div class="screen-content">
-                    <div class="results-header">
-                        <h2>ROUND <span id="results-round">1</span> RESULTS</h2>
-                    </div>
+            <div class="answer-actions">
+              <button id="btn-submit-answers" class="retro-btn primary large">DONE</button>
+            </div>
+          </div>
+        </section>
 
-                    <div class="results-content">
-                        <div id="round-scores" class="round-scores"></div>
-                        <div id="leaderboard" class="leaderboard">
-                            <h3>LEADERBOARD</h3>
-                            <ol id="leaderboard-list"></ol>
-                        </div>
-                    </div>
+        <!-- Voting Screen -->
+        <section id="screen-voting" class="screen">
+          <div class="screen-content">
+            <div class="voting-header">
+              <h2>VOTE ON ANSWERS</h2>
+              <p class="voting-instructions">
+                Vote on each answer. Entries need net positive votes to score.
+              </p>
+            </div>
 
-                    <div class="results-actions">
-                        <button id="btn-next-round" class="retro-btn primary large">NEXT ROUND</button>
-                    </div>
-                </div>
-            </section>
+            <div id="voting-container" class="voting-container"></div>
 
-            <!-- Final Screen -->
-            <section id="screen-final" class="screen">
-                <div class="screen-content centered">
-                    <div class="final-header">
-                        <h2>GAME OVER</h2>
-                    </div>
+            <div class="voting-actions">
+              <button id="btn-finish-voting" class="retro-btn primary large">DONE VOTING</button>
+            </div>
+          </div>
+        </section>
 
-                    <div id="winner-display" class="winner-display"></div>
+        <!-- Results Screen -->
+        <section id="screen-results" class="screen">
+          <div class="screen-content">
+            <div class="results-header">
+              <h2>ROUND <span id="results-round">1</span> RESULTS</h2>
+            </div>
 
-                    <div id="final-standings" class="final-standings">
-                        <h3>FINAL STANDINGS</h3>
-                        <ol id="final-standings-list"></ol>
-                    </div>
+            <div class="results-content">
+              <div id="round-scores" class="round-scores"></div>
+              <div id="leaderboard" class="leaderboard">
+                <h3>LEADERBOARD</h3>
+                <ol id="leaderboard-list"></ol>
+              </div>
+            </div>
 
-                    <div class="final-actions">
-                        <button id="btn-play-again" class="retro-btn primary large">PLAY AGAIN</button>
-                        <button id="btn-back-home" class="retro-btn secondary">BACK TO HOME</button>
-                    </div>
-                </div>
-            </section>
-        </main>
+            <div class="results-actions">
+              <button id="btn-next-round" class="retro-btn primary large">NEXT ROUND</button>
+            </div>
+          </div>
+        </section>
 
-        <!-- Toast notifications -->
-        <div id="toast-container" class="toast-container"></div>
+        <!-- Final Screen -->
+        <section id="screen-final" class="screen">
+          <div class="screen-content centered">
+            <div class="final-header">
+              <h2>GAME OVER</h2>
+            </div>
+
+            <div id="winner-display" class="winner-display"></div>
+
+            <div id="final-standings" class="final-standings">
+              <h3>FINAL STANDINGS</h3>
+              <ol id="final-standings-list"></ol>
+            </div>
+
+            <div class="final-actions">
+              <button id="btn-play-again" class="retro-btn primary large">PLAY AGAIN</button>
+              <button id="btn-back-home" class="retro-btn secondary">BACK TO HOME</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Toast notifications -->
+      <div id="toast-container" class="toast-container"></div>
     </div>
 
     <!-- Scripts -->
     <script type="module" src="js/main.js"></script>
-</body>
+  </body>
 </html>

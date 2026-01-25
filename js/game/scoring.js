@@ -2,8 +2,8 @@
  * Voting and Scoring Logic
  */
 
-import { SCORING } from '../config.js';
-import { normalizeAnswer, startsWithLetter, groupDuplicateAnswers } from './round.js';
+import { SCORING } from "../config.js";
+import { normalizeAnswer, startsWithLetter, groupDuplicateAnswers } from "./round.js";
 
 /**
  * Calculate net votes for an answer
@@ -11,10 +11,12 @@ import { normalizeAnswer, startsWithLetter, groupDuplicateAnswers } from './roun
  * @returns {number} Net votes (upvotes - downvotes)
  */
 export function calculateNetVotes(answerVotes) {
-    if (!answerVotes) return 0;
-    const upvotes = answerVotes.upvotes?.length || 0;
-    const downvotes = answerVotes.downvotes?.length || 0;
-    return upvotes - downvotes;
+  if (!answerVotes) {
+    return 0;
+  }
+  const upvotes = answerVotes.upvotes?.length || 0;
+  const downvotes = answerVotes.downvotes?.length || 0;
+  return upvotes - downvotes;
 }
 
 /**
@@ -23,7 +25,7 @@ export function calculateNetVotes(answerVotes) {
  * @returns {boolean}
  */
 export function isAnswerValid(answerVotes) {
-    return calculateNetVotes(answerVotes) >= SCORING.MIN_NET_VOTES;
+  return calculateNetVotes(answerVotes) >= SCORING.MIN_NET_VOTES;
 }
 
 /**
@@ -32,7 +34,7 @@ export function isAnswerValid(answerVotes) {
  * @returns {number} Points awarded
  */
 export function calculatePoints(isUnique) {
-    return isUnique ? SCORING.UNIQUE_ANSWER : SCORING.VALID_ANSWER;
+  return isUnique ? SCORING.UNIQUE_ANSWER : SCORING.VALID_ANSWER;
 }
 
 /**
@@ -44,83 +46,85 @@ export function calculatePoints(isUnique) {
  * @returns {Object} Round results with scores
  */
 export function calculateRoundResults(answers, votes, categories, letter) {
-    const playerScores = {};
-    const categoryResults = [];
+  const playerScores = {};
+  const categoryResults = [];
 
-    // Process each category
-    categories.forEach((category, categoryIndex) => {
-        const categoryAnswers = [];
+  // Process each category
+  categories.forEach((category, categoryIndex) => {
+    const categoryAnswers = [];
 
-        // Collect all answers for this category
-        const answersByPlayer = {};
-        for (const [playerId, playerAnswers] of Object.entries(answers)) {
-            const answer = playerAnswers?.[categoryIndex];
-            if (answer && answer.trim()) {
-                answersByPlayer[playerId] = answer.trim();
-            }
+    // Collect all answers for this category
+    const answersByPlayer = {};
+    for (const [playerId, playerAnswers] of Object.entries(answers)) {
+      const answer = playerAnswers?.[categoryIndex];
+      if (answer && answer.trim()) {
+        answersByPlayer[playerId] = answer.trim();
+      }
+    }
+
+    // Group duplicate answers
+    const duplicateGroups = groupDuplicateAnswers(answersByPlayer);
+
+    // Process each player's answer
+    for (const [playerId, answer] of Object.entries(answersByPlayer)) {
+      const normalized = normalizeAnswer(answer);
+
+      // Get votes for this answer
+      const categoryVotes = votes[categoryIndex] || {};
+      const answerVotes = categoryVotes[answer] || { upvotes: [], downvotes: [] };
+      const netVotes = calculateNetVotes(answerVotes);
+
+      // Check validity
+      const startsCorrect = startsWithLetter(answer, letter);
+      const hasPositiveVotes = netVotes >= SCORING.MIN_NET_VOTES;
+      const isValid = startsCorrect && hasPositiveVotes;
+
+      // Check if unique
+      const duplicateCount = duplicateGroups[normalized]?.length || 1;
+      const isUnique = duplicateCount === 1;
+
+      // Calculate points
+      let points = 0;
+      if (isValid) {
+        points = calculatePoints(isUnique);
+
+        // Add to player score
+        if (!playerScores[playerId]) {
+          playerScores[playerId] = 0;
         }
+        playerScores[playerId] += points;
+      }
 
-        // Group duplicate answers
-        const duplicateGroups = groupDuplicateAnswers(answersByPlayer);
+      categoryAnswers.push({
+        playerId,
+        answer,
+        normalized,
+        netVotes,
+        isValid,
+        isUnique,
+        points,
+        startsCorrect,
+      });
+    }
 
-        // Process each player's answer
-        for (const [playerId, answer] of Object.entries(answersByPlayer)) {
-            const normalized = normalizeAnswer(answer);
-
-            // Get votes for this answer
-            const categoryVotes = votes[categoryIndex] || {};
-            const answerVotes = categoryVotes[answer] || { upvotes: [], downvotes: [] };
-            const netVotes = calculateNetVotes(answerVotes);
-
-            // Check validity
-            const startsCorrect = startsWithLetter(answer, letter);
-            const hasPositiveVotes = netVotes >= SCORING.MIN_NET_VOTES;
-            const isValid = startsCorrect && hasPositiveVotes;
-
-            // Check if unique
-            const duplicateCount = duplicateGroups[normalized]?.length || 1;
-            const isUnique = duplicateCount === 1;
-
-            // Calculate points
-            let points = 0;
-            if (isValid) {
-                points = calculatePoints(isUnique);
-
-                // Add to player score
-                if (!playerScores[playerId]) {
-                    playerScores[playerId] = 0;
-                }
-                playerScores[playerId] += points;
-            }
-
-            categoryAnswers.push({
-                playerId,
-                answer,
-                normalized,
-                netVotes,
-                isValid,
-                isUnique,
-                points,
-                startsCorrect
-            });
-        }
-
-        // Sort by points (valid first), then by votes
-        categoryAnswers.sort((a, b) => {
-            if (a.isValid !== b.isValid) return b.isValid - a.isValid;
-            return b.netVotes - a.netVotes;
-        });
-
-        categoryResults.push({
-            category,
-            answers: categoryAnswers
-        });
+    // Sort by points (valid first), then by votes
+    categoryAnswers.sort((a, b) => {
+      if (a.isValid !== b.isValid) {
+        return b.isValid - a.isValid;
+      }
+      return b.netVotes - a.netVotes;
     });
 
-    return {
-        categoryResults,
-        playerScores
-    };
+    categoryResults.push({
+      category,
+      answers: categoryAnswers,
+    });
+  });
+
+  return {
+    categoryResults,
+    playerScores,
+  };
 }
 
 /**
@@ -130,13 +134,13 @@ export function calculateRoundResults(answers, votes, categories, letter) {
  * @returns {Array} Sorted leaderboard entries
  */
 export function getLeaderboard(scores, players) {
-    return players
-        .map(p => ({
-            id: p.id,
-            name: p.name,
-            score: scores[p.id] || 0
-        }))
-        .sort((a, b) => b.score - a.score);
+  return players
+    .map((p) => ({
+      id: p.id,
+      name: p.name,
+      score: scores[p.id] || 0,
+    }))
+    .sort((a, b) => b.score - a.score);
 }
 
 /**
@@ -146,18 +150,20 @@ export function getLeaderboard(scores, players) {
  * @returns {Array} Winner(s) (could be multiple if tied)
  */
 export function getWinners(scores, players) {
-    const leaderboard = getLeaderboard(scores, players);
-    if (leaderboard.length === 0) return [];
+  const leaderboard = getLeaderboard(scores, players);
+  if (leaderboard.length === 0) {
+    return [];
+  }
 
-    const topScore = leaderboard[0].score;
-    return leaderboard.filter(p => p.score === topScore);
+  const topScore = leaderboard[0].score;
+  return leaderboard.filter((p) => p.score === topScore);
 }
 
 export default {
-    calculateNetVotes,
-    isAnswerValid,
-    calculatePoints,
-    calculateRoundResults,
-    getLeaderboard,
-    getWinners
+  calculateNetVotes,
+  isAnswerValid,
+  calculatePoints,
+  calculateRoundResults,
+  getLeaderboard,
+  getWinners,
 };

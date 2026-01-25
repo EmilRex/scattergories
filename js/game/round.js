@@ -2,7 +2,7 @@
  * Round and Letter Management
  */
 
-import { AVAILABLE_LETTERS } from '../config.js';
+import { AVAILABLE_LETTERS } from "../config.js";
 
 /**
  * Select a random letter, avoiding already used letters
@@ -10,16 +10,16 @@ import { AVAILABLE_LETTERS } from '../config.js';
  * @returns {string} Selected letter
  */
 export function selectLetter(usedLetters = []) {
-    // Filter out used letters
-    const available = AVAILABLE_LETTERS.filter(l => !usedLetters.includes(l));
+  // Filter out used letters
+  const available = AVAILABLE_LETTERS.filter((l) => !usedLetters.includes(l));
 
-    if (available.length === 0) {
-        // All letters used, reset (shouldn't happen in normal play)
-        return AVAILABLE_LETTERS[Math.floor(Math.random() * AVAILABLE_LETTERS.length)];
-    }
+  if (available.length === 0) {
+    // All letters used, reset (shouldn't happen in normal play)
+    return AVAILABLE_LETTERS[Math.floor(Math.random() * AVAILABLE_LETTERS.length)];
+  }
 
-    // Pick random letter
-    return available[Math.floor(Math.random() * available.length)];
+  // Pick random letter
+  return available[Math.floor(Math.random() * available.length)];
 }
 
 /**
@@ -31,20 +31,22 @@ export function selectLetter(usedLetters = []) {
  * @returns {string} Normalized answer
  */
 export function normalizeAnswer(answer) {
-    if (!answer) return '';
+  if (!answer) {
+    return "";
+  }
 
-    let normalized = answer.toLowerCase().trim();
+  let normalized = answer.toLowerCase().trim();
 
-    // Remove common prefixes
-    const prefixes = ['a ', 'an ', 'the '];
-    for (const prefix of prefixes) {
-        if (normalized.startsWith(prefix)) {
-            normalized = normalized.slice(prefix.length);
-            break;
-        }
+  // Remove common prefixes
+  const prefixes = ["a ", "an ", "the "];
+  for (const prefix of prefixes) {
+    if (normalized.startsWith(prefix)) {
+      normalized = normalized.slice(prefix.length);
+      break;
     }
+  }
 
-    return normalized.trim();
+  return normalized.trim();
 }
 
 /**
@@ -54,8 +56,8 @@ export function normalizeAnswer(answer) {
  * @returns {boolean}
  */
 export function startsWithLetter(answer, letter) {
-    const normalized = normalizeAnswer(answer);
-    return normalized.length > 0 && normalized[0].toUpperCase() === letter.toUpperCase();
+  const normalized = normalizeAnswer(answer);
+  return normalized.length > 0 && normalized[0].toUpperCase() === letter.toUpperCase();
 }
 
 /**
@@ -65,7 +67,7 @@ export function startsWithLetter(answer, letter) {
  * @returns {boolean}
  */
 export function areAnswersDuplicate(answer1, answer2) {
-    return normalizeAnswer(answer1) === normalizeAnswer(answer2);
+  return normalizeAnswer(answer1) === normalizeAnswer(answer2);
 }
 
 /**
@@ -74,25 +76,27 @@ export function areAnswersDuplicate(answer1, answer2) {
  * @returns {Object} { normalizedAnswer: [playerIds] }
  */
 export function groupDuplicateAnswers(answers) {
-    const groups = {};
+  const groups = {};
 
-    for (const [playerId, answer] of Object.entries(answers)) {
-        if (!answer || !answer.trim()) continue;
-
-        const normalized = normalizeAnswer(answer);
-        if (!groups[normalized]) {
-            groups[normalized] = [];
-        }
-        groups[normalized].push(playerId);
+  for (const [playerId, answer] of Object.entries(answers)) {
+    if (!answer || !answer.trim()) {
+      continue;
     }
 
-    return groups;
+    const normalized = normalizeAnswer(answer);
+    if (!groups[normalized]) {
+      groups[normalized] = [];
+    }
+    groups[normalized].push(playerId);
+  }
+
+  return groups;
 }
 
 export default {
-    selectLetter,
-    normalizeAnswer,
-    startsWithLetter,
-    areAnswersDuplicate,
-    groupDuplicateAnswers
+  selectLetter,
+  normalizeAnswer,
+  startsWithLetter,
+  areAnswersDuplicate,
+  groupDuplicateAnswers,
 };

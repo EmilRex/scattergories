@@ -25,14 +25,14 @@ export function createMockLocalStorage() {
     },
     key(index) {
       return Object.keys(this._data)[index] ?? null;
-    }
+    },
   };
 }
 
 /**
  * Create a mock window.location object
  */
-export function createMockLocation(initialUrl = 'http://localhost:3000') {
+export function createMockLocation(initialUrl = "http://localhost:3000") {
   const url = new URL(initialUrl);
 
   return {
@@ -56,7 +56,7 @@ export function createMockLocation(initialUrl = 'http://localhost:3000') {
 
     reload() {
       // No-op in tests
-    }
+    },
   };
 }
 
@@ -64,7 +64,7 @@ export function createMockLocation(initialUrl = 'http://localhost:3000') {
  * Create a mock window.history object
  */
 export function createMockHistory() {
-  const states = [{ state: null, title: '', url: '' }];
+  const states = [{ state: null, title: "", url: "" }];
   let currentIndex = 0;
 
   return {
@@ -99,21 +99,21 @@ export function createMockHistory() {
 
     forward() {
       this.go(1);
-    }
+    },
   };
 }
 
 /**
  * Create a mock Element
  */
-export function createMockElement(tagName = 'div') {
+export function createMockElement(tagName = "div") {
   const element = {
     tagName: tagName.toUpperCase(),
-    className: '',
-    id: '',
-    textContent: '',
-    innerHTML: '',
-    innerText: '',
+    className: "",
+    id: "",
+    textContent: "",
+    innerHTML: "",
+    innerText: "",
     style: {},
     dataset: {},
     children: [],
@@ -148,7 +148,7 @@ export function createMockElement(tagName = 'div') {
     removeEventListener(type, handler) {
       if (this._eventListeners[type]) {
         this._eventListeners[type] = this._eventListeners[type].filter(
-          l => l.handler !== handler
+          (l) => l.handler !== handler
         );
       }
     },
@@ -156,7 +156,7 @@ export function createMockElement(tagName = 'div') {
     dispatchEvent(event) {
       const type = event.type || event;
       if (this._eventListeners[type]) {
-        this._eventListeners[type].forEach(l => l.handler(event));
+        this._eventListeners[type].forEach((l) => l.handler(event));
       }
       return true;
     },
@@ -176,19 +176,19 @@ export function createMockElement(tagName = 'div') {
       return child;
     },
 
-    querySelector(selector) {
+    querySelector(_selector) {
       return null;
     },
 
-    querySelectorAll(selector) {
+    querySelectorAll(_selector) {
       return [];
     },
 
     focus() {},
     blur() {},
     click() {
-      this.dispatchEvent({ type: 'click' });
-    }
+      this.dispatchEvent({ type: "click" });
+    },
   };
 
   return element;
@@ -199,7 +199,7 @@ export function createMockElement(tagName = 'div') {
  */
 export function createMockDocument() {
   const elements = new Map();
-  const body = createMockElement('body');
+  const body = createMockElement("body");
 
   return {
     body,
@@ -208,11 +208,11 @@ export function createMockDocument() {
       return elements.get(id) || null;
     },
 
-    querySelector(selector) {
+    querySelector(_selector) {
       return null;
     },
 
-    querySelectorAll(selector) {
+    querySelectorAll(_selector) {
       return [];
     },
 
@@ -232,7 +232,7 @@ export function createMockDocument() {
 
     _clearElements() {
       elements.clear();
-    }
+    },
   };
 }
 
@@ -241,5 +241,5 @@ export default {
   createMockLocation,
   createMockHistory,
   createMockElement,
-  createMockDocument
+  createMockDocument,
 };
