@@ -87,7 +87,14 @@ class PeerManager {
         reliable: true,
       });
 
+      const timeoutId = setTimeout(() => {
+        if (!conn.open) {
+          reject(new Error("Connection timeout"));
+        }
+      }, 10000);
+
       conn.on("open", () => {
+        clearTimeout(timeoutId);
         console.log("Connected to host:", hostId);
         this.connections.set(hostId, conn);
         this.setupConnectionHandlers(conn);
@@ -95,16 +102,10 @@ class PeerManager {
       });
 
       conn.on("error", (err) => {
+        clearTimeout(timeoutId);
         console.error("Connection error:", err);
         reject(err);
       });
-
-      // Timeout after 10 seconds
-      setTimeout(() => {
-        if (!conn.open) {
-          reject(new Error("Connection timeout"));
-        }
-      }, 10000);
     });
   }
 

@@ -38,6 +38,26 @@ class AnswerScreen {
     this.elements.submitBtn?.addEventListener("click", () => {
       this.submitAnswers();
     });
+
+    // Use event delegation for answer grid inputs (avoids memory leaks from re-rendering)
+    this.elements.answerGrid?.addEventListener("input", (e) => {
+      if (e.target.matches("input[data-category-index]")) {
+        const index = parseInt(e.target.dataset.categoryIndex);
+        this.answers[index] = e.target.value.trim();
+      }
+    });
+
+    this.elements.answerGrid?.addEventListener("keypress", (e) => {
+      if (e.target.matches("input[data-category-index]") && e.key === "Enter") {
+        const inputs = this.elements.answerGrid.querySelectorAll("input");
+        const currentIndex = Array.from(inputs).indexOf(e.target);
+        if (currentIndex === inputs.length - 1) {
+          this.submitAnswers();
+        } else {
+          inputs[currentIndex + 1].focus();
+        }
+      }
+    });
   }
 
   subscribeToState() {
@@ -139,27 +159,6 @@ class AnswerScreen {
         `
       )
       .join("");
-
-    // Bind input events
-    this.elements.answerGrid.querySelectorAll("input").forEach((input) => {
-      input.addEventListener("input", (e) => {
-        const index = parseInt(e.target.dataset.categoryIndex);
-        this.answers[index] = e.target.value.trim();
-      });
-
-      // Submit on Enter in last field
-      input.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-          const inputs = this.elements.answerGrid.querySelectorAll("input");
-          const currentIndex = Array.from(inputs).indexOf(e.target);
-          if (currentIndex === inputs.length - 1) {
-            this.submitAnswers();
-          } else {
-            inputs[currentIndex + 1].focus();
-          }
-        }
-      });
-    });
 
     // Focus first input
     const firstInput = this.elements.answerGrid.querySelector("input");

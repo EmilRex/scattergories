@@ -116,14 +116,27 @@ const CATEGORY_POOL = [
 ];
 
 /**
+ * Fisher-Yates shuffle algorithm for uniform random distribution
+ * @param {Array} array - Array to shuffle (mutated in place)
+ * @returns {Array} The shuffled array
+ */
+function fisherYatesShuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+/**
  * Get a random selection of categories
  * @param {number} count - Number of categories to select
  * @returns {string[]} Array of category strings
  */
 export function getCategories(count = 12) {
-  // Shuffle and pick
-  const shuffled = [...CATEGORY_POOL].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count);
+  const requestedCount = Math.min(count, CATEGORY_POOL.length);
+  const shuffled = fisherYatesShuffle([...CATEGORY_POOL]);
+  return shuffled.slice(0, requestedCount);
 }
 
 /**
