@@ -1,0 +1,22 @@
+{
+  "name": "scattergories",
+  "version": "1.0.0",
+  "description": "Multiplayer Scattergories game using P2P WebRTC",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.0"
+  },
+  "keywords": [
+    "scattergories",
+    "game",
+    "multiplayer",
+    "p2p",
+    "webrtc"
+  ],
+  "license": "MIT"
+}
