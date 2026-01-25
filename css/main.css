@@ -47,18 +47,25 @@ body {
 }
 
 .status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-indicator::before {
+  content: "";
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  display: inline-block;
+  flex-shrink: 0;
 }
 
-.status-indicator.connected {
+.status-indicator.connected::before {
   background-color: #0f0;
   box-shadow: 0 0 10px #0f0;
 }
 
-.status-indicator.disconnected {
+.status-indicator.disconnected::before {
   background-color: #f00;
   box-shadow: 0 0 10px #f00;
 }

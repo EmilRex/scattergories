@@ -319,13 +319,11 @@ h3,
 /* Connection status */
 #connection-status.connected::after {
   content: "ONLINE";
-  margin-left: 0.5rem;
   font-size: 0.6rem;
 }
 
 #connection-status.disconnected::after {
   content: "OFFLINE";
-  margin-left: 0.5rem;
   font-size: 0.6rem;
   color: var(--error-color);
 }
