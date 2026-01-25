@@ -20,20 +20,38 @@ export function calculateNetVotes(answerVotes) {
 }
 
 /**
- * Check if an answer is valid (has positive net votes)
- * @param {Object} answerVotes - Vote data for an answer
+ * Check if an answer is valid
+ * @param {string} answer - The answer text
+ * @param {string} letter - Required starting letter
+ * @param {number} netVotes - Net votes for the answer
+ * @param {number} minNetVotes - Minimum net votes required (default: SCORING.MIN_NET_VOTES)
  * @returns {boolean}
  */
-export function isAnswerValid(answerVotes) {
-  return calculateNetVotes(answerVotes) >= SCORING.MIN_NET_VOTES;
+export function isAnswerValid(answer, letter, netVotes, minNetVotes = SCORING.MIN_NET_VOTES) {
+  // Empty or whitespace-only answers are invalid
+  if (!answer || !answer.trim()) {
+    return false;
+  }
+
+  // Must start with the correct letter
+  if (!startsWithLetter(answer, letter)) {
+    return false;
+  }
+
+  // Must have minimum net votes
+  return netVotes >= minNetVotes;
 }
 
 /**
- * Calculate points for a valid answer
+ * Calculate points for an answer
  * @param {boolean} isUnique - Whether this answer is unique (no one else has it)
- * @returns {number} Points awarded
+ * @param {boolean} isValid - Whether the answer is valid (correct letter + positive votes)
+ * @returns {number} Points awarded (0 if invalid)
  */
-export function calculatePoints(isUnique) {
+export function calculatePoints(isUnique, isValid = true) {
+  if (!isValid) {
+    return 0;
+  }
   return isUnique ? SCORING.UNIQUE_ANSWER : SCORING.VALID_ANSWER;
 }
 
@@ -74,21 +92,19 @@ export function calculateRoundResults(answers, votes, categories, letter) {
       const answerVotes = categoryVotes[answer] || { upvotes: [], downvotes: [] };
       const netVotes = calculateNetVotes(answerVotes);
 
-      // Check validity
+      // Check validity using the proper validation function
       const startsCorrect = startsWithLetter(answer, letter);
-      const hasPositiveVotes = netVotes >= SCORING.MIN_NET_VOTES;
-      const isValid = startsCorrect && hasPositiveVotes;
+      const isValid = isAnswerValid(answer, letter, netVotes);
 
       // Check if unique
       const duplicateCount = duplicateGroups[normalized]?.length || 1;
       const isUnique = duplicateCount === 1;
 
-      // Calculate points
-      let points = 0;
-      if (isValid) {
-        points = calculatePoints(isUnique);
+      // Calculate points (pass validity to ensure 0 for invalid)
+      const points = calculatePoints(isUnique, isValid);
 
-        // Add to player score
+      // Add to player score
+      if (points > 0) {
         if (!playerScores[playerId]) {
           playerScores[playerId] = 0;
         }
@@ -146,17 +162,29 @@ export function getLeaderboard(scores, players) {
 /**
  * Determine winner(s)
  * @param {Object} scores - { playerId: totalScore }
- * @param {Array} players - Player objects
- * @returns {Array} Winner(s) (could be multiple if tied)
+ * @param {Array} players - Optional player objects (if omitted, returns player IDs)
+ * @returns {Array} Winner(s) - player IDs if no players array, or player objects if provided
  */
-export function getWinners(scores, players) {
-  const leaderboard = getLeaderboard(scores, players);
-  if (leaderboard.length === 0) {
+export function getWinners(scores, players = null) {
+  if (!scores || Object.keys(scores).length === 0) {
     return [];
   }
 
-  const topScore = leaderboard[0].score;
-  return leaderboard.filter((p) => p.score === topScore);
+  // If players array provided, use leaderboard
+  if (players) {
+    const leaderboard = getLeaderboard(scores, players);
+    if (leaderboard.length === 0) {
+      return [];
+    }
+    const topScore = leaderboard[0].score;
+    return leaderboard.filter((p) => p.score === topScore);
+  }
+
+  // Otherwise, just return player IDs with top score
+  const topScore = Math.max(...Object.values(scores));
+  return Object.entries(scores)
+    .filter(([, score]) => score === topScore)
+    .map(([playerId]) => playerId);
 }
 
 export default {

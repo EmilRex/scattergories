@@ -150,6 +150,23 @@ class GameStateMachine {
   isPlaying() {
     return [PHASES.ANSWERING, PHASES.VOTING, PHASES.RESULTS].includes(this.currentPhase);
   }
+
+  /**
+   * Reset state machine to initial state
+   * Clears all callbacks and resets phase to HOME
+   */
+  reset() {
+    this.transitionCallbacks.clear();
+    store.set("gamePhase", PHASES.HOME);
+  }
+
+  /**
+   * Get current phase (method form for API consistency)
+   * @returns {string} Current phase
+   */
+  getPhase() {
+    return this.currentPhase;
+  }
 }
 
 export const gameState = new GameStateMachine();

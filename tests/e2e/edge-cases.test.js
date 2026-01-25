@@ -71,20 +71,30 @@ describe("edge-cases", () => {
     });
 
     it("should group duplicate answers from multiple players", () => {
-      const answers = ["Cat", "cat", "Dog", "CAT", "dog"];
+      // groupDuplicateAnswers expects { playerId: answer } object
+      const answers = {
+        player1: "Cat",
+        player2: "cat",
+        player3: "Dog",
+        player4: "CAT",
+        player5: "dog",
+      };
       const groups = groupDuplicateAnswers(answers);
 
       // Should have 2 groups: "cat" and "dog"
       const groupKeys = Object.keys(groups);
       expect(groupKeys).toHaveLength(2);
 
-      // "cat" group should have 3 answers
-      const catKey = groupKeys.find((k) => normalizeAnswer(groups[k][0]) === "cat");
-      expect(groups[catKey]).toHaveLength(3);
+      // "cat" group should have 3 player IDs
+      expect(groups["cat"]).toHaveLength(3);
+      expect(groups["cat"]).toContain("player1");
+      expect(groups["cat"]).toContain("player2");
+      expect(groups["cat"]).toContain("player4");
 
-      // "dog" group should have 2 answers
-      const dogKey = groupKeys.find((k) => normalizeAnswer(groups[k][0]) === "dog");
-      expect(groups[dogKey]).toHaveLength(2);
+      // "dog" group should have 2 player IDs
+      expect(groups["dog"]).toHaveLength(2);
+      expect(groups["dog"]).toContain("player3");
+      expect(groups["dog"]).toContain("player5");
     });
   });
 
@@ -364,51 +374,52 @@ describe("edge-cases", () => {
 
   describe("round results calculation", () => {
     it("should calculate results with all valid parameters", () => {
-      const players = ["player1", "player2"];
+      // answers format: { playerId: { categoryIndex: answer } }
       const answers = {
-        player1: ["Cat", "Cheese"],
-        player2: ["Cow", "Cake"],
+        player1: { 0: "Cat", 1: "Cheese" },
+        player2: { 0: "Cow", 1: "Cake" },
       };
       const votes = {
         0: {
-          cat: { upvotes: ["player2"], downvotes: [] },
-          cow: { upvotes: ["player1"], downvotes: [] },
+          Cat: { upvotes: ["player2"], downvotes: [] },
+          Cow: { upvotes: ["player1"], downvotes: [] },
         },
         1: {
-          cheese: { upvotes: ["player2"], downvotes: [] },
-          cake: { upvotes: ["player1"], downvotes: [] },
+          Cheese: { upvotes: ["player2"], downvotes: [] },
+          Cake: { upvotes: ["player1"], downvotes: [] },
         },
       };
       const categories = ["Animals", "Foods"];
       const letter = "C";
 
-      const results = calculateRoundResults(players, answers, votes, categories, letter);
+      const results = calculateRoundResults(answers, votes, categories, letter);
 
       expect(results).toBeDefined();
       expect(typeof results).toBe("object");
+      expect(results.playerScores).toBeDefined();
+      expect(results.categoryResults).toBeDefined();
     });
 
-    it("should handle empty answers array", () => {
-      const players = ["player1"];
-      const answers = { player1: [] };
+    it("should handle empty categories array", () => {
+      const answers = { player1: {} };
       const votes = {};
       const categories = [];
       const letter = "C";
 
-      const results = calculateRoundResults(players, answers, votes, categories, letter);
+      const results = calculateRoundResults(answers, votes, categories, letter);
 
       expect(results).toBeDefined();
+      expect(results.categoryResults).toHaveLength(0);
     });
 
     it("should handle missing player answers gracefully", () => {
-      const players = ["player1", "player2"];
       const answers = {
-        player1: ["Cat", "Cheese"],
-        // player2 has no answers
+        player1: { 0: "Cat", 1: "Cheese" },
+        // player2 has no answers - not even in the object
       };
       const votes = {
         0: {
-          cat: { upvotes: ["player2"], downvotes: [] },
+          Cat: { upvotes: ["player2"], downvotes: [] },
         },
       };
       const categories = ["Animals", "Foods"];
@@ -416,7 +427,7 @@ describe("edge-cases", () => {
 
       // Should not throw
       expect(() => {
-        calculateRoundResults(players, answers, votes, categories, letter);
+        calculateRoundResults(answers, votes, categories, letter);
       }).not.toThrow();
     });
   });

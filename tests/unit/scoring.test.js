@@ -54,44 +54,53 @@ describe("scoring", () => {
   });
 
   describe("isAnswerValid", () => {
-    it("returns true for positive net votes (>= 1)", () => {
-      expect(
-        isAnswerValid({
-          upvotes: ["p1", "p2"],
-          downvotes: ["p3"],
-        })
-      ).toBe(true);
+    it("returns true for valid answer with positive net votes (>= 1)", () => {
+      // Answer "Cat" starts with "C", net votes = 1
+      expect(isAnswerValid("Cat", "C", 1)).toBe(true);
+      // Answer with higher net votes
+      expect(isAnswerValid("Cat", "C", 5)).toBe(true);
     });
 
     it("returns false for zero net votes", () => {
-      expect(
-        isAnswerValid({
-          upvotes: ["p1"],
-          downvotes: ["p2"],
-        })
-      ).toBe(false);
+      expect(isAnswerValid("Cat", "C", 0)).toBe(false);
     });
 
     it("returns false for negative net votes", () => {
-      expect(
-        isAnswerValid({
-          upvotes: [],
-          downvotes: ["p1", "p2"],
-        })
-      ).toBe(false);
+      expect(isAnswerValid("Cat", "C", -2)).toBe(false);
     });
 
-    it("returns false for null input", () => {
-      expect(isAnswerValid(null)).toBe(false);
+    it("returns false for null/empty answer", () => {
+      expect(isAnswerValid(null, "C", 5)).toBe(false);
+      expect(isAnswerValid("", "C", 5)).toBe(false);
+      expect(isAnswerValid("  ", "C", 5)).toBe(false);
+    });
+
+    it("returns false for wrong starting letter", () => {
+      expect(isAnswerValid("Dog", "C", 5)).toBe(false);
+    });
+
+    it("handles case-insensitive letter matching", () => {
+      expect(isAnswerValid("cat", "C", 1)).toBe(true);
+      expect(isAnswerValid("Cat", "c", 1)).toBe(true);
     });
   });
 
   describe("calculatePoints", () => {
-    it("returns 2 points for unique answers", () => {
-      expect(calculatePoints(true)).toBe(2);
+    it("returns 2 points for unique valid answers", () => {
+      expect(calculatePoints(true, true)).toBe(2);
     });
 
-    it("returns 1 point for non-unique (shared) answers", () => {
+    it("returns 1 point for non-unique (shared) valid answers", () => {
+      expect(calculatePoints(false, true)).toBe(1);
+    });
+
+    it("returns 0 points for invalid answers regardless of uniqueness", () => {
+      expect(calculatePoints(true, false)).toBe(0);
+      expect(calculatePoints(false, false)).toBe(0);
+    });
+
+    it("defaults to valid=true for backwards compatibility", () => {
+      expect(calculatePoints(true)).toBe(2);
       expect(calculatePoints(false)).toBe(1);
     });
   });
