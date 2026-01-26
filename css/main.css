@@ -146,6 +146,12 @@ body {
   gap: 0.5rem;
 }
 
+.game-code-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .code-text {
   font-size: 1rem;
   letter-spacing: 2px;

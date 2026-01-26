@@ -316,17 +316,7 @@ h3,
   color: var(--warning-color);
 }
 
-/* Connection status */
-#connection-status.connected::after {
-  content: "ONLINE";
-  font-size: 0.6rem;
-}
-
-#connection-status.disconnected::after {
-  content: "OFFLINE";
-  font-size: 0.6rem;
-  color: var(--error-color);
-}
+/* Connection status - just the dot indicator, no text */
 
 /* Category card in answer grid */
 .answer-item {
