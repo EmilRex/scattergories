@@ -46,6 +46,12 @@ body {
   gap: 1rem;
 }
 
+.header-name-input {
+  width: 10rem;
+  font-size: 0.7rem;
+  padding: 0.4rem 0.6rem;
+}
+
 .status-indicator {
   display: inline-flex;
   align-items: center;
@@ -199,13 +205,24 @@ body {
   padding: 0.5rem;
 }
 
-.player-list li.ready .player-name {
+.player-list .player-name {
   color: #00ff41;
+}
+
+.player-list .player-name.disconnected {
+  color: #ff4141;
+}
+
+.player-list li.ready .player-name {
   text-shadow: 0 0 8px #00ff41;
 }
 
+.player-list li.ready .player-name.disconnected {
+  text-shadow: 0 0 8px #ff4141;
+}
+
 .player-list li:not(.ready) .player-name {
-  opacity: 0.5;
+  opacity: 0.7;
 }
 
 .setting-row {
@@ -270,8 +287,8 @@ body {
 }
 
 .answer-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
   margin-bottom: 2rem;
 }

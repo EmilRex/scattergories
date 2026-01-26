@@ -7,7 +7,6 @@ import host from "../../network/host.js";
 import client from "../../network/client.js";
 import { copyGameUrlToClipboard } from "../../utils/url.js";
 import { showToast } from "../components/toast.js";
-import storage from "../../utils/storage.js";
 
 class LobbyScreen {
   constructor() {
@@ -27,7 +26,7 @@ class LobbyScreen {
     this.elements = {
       gameCode: document.getElementById("lobby-game-code"),
       copyCodeBtn: document.getElementById("btn-copy-code"),
-      nameInput: document.getElementById("lobby-name-input"),
+      copyLinkBtn: document.getElementById("btn-copy-link"),
       playerList: document.getElementById("player-list"),
       hostSettings: document.getElementById("host-settings"),
       categoriesSetting: document.getElementById("setting-categories"),
@@ -39,35 +38,22 @@ class LobbyScreen {
   }
 
   bindEvents() {
-    // Copy game code
+    // Copy game code only
     this.elements.copyCodeBtn?.addEventListener("click", async () => {
+      const gameId = store.get("gameId");
+      try {
+        await navigator.clipboard.writeText(gameId);
+        showToast("Code copied!", "success");
+      } catch {
+        showToast("Failed to copy", "error");
+      }
+    });
+
+    // Copy game link
+    this.elements.copyLinkBtn?.addEventListener("click", async () => {
       const gameId = store.get("gameId");
       const success = await copyGameUrlToClipboard(gameId);
       showToast(success ? "Link copied!" : "Failed to copy", success ? "success" : "error");
-    });
-
-    // Name input - update name on change
-    this.elements.nameInput?.addEventListener("input", (e) => {
-      const name = e.target.value.trim();
-      if (name) {
-        store.set("localPlayer.name", name);
-        storage.setUsername(name);
-
-        // Broadcast name change to others
-        if (store.get("isHost")) {
-          // Host updates their own player in the list
-          const players = store.get("players");
-          const hostPlayer = players.find((p) => p.isHost);
-          if (hostPlayer) {
-            hostPlayer.name = name;
-            store.set("players", [...players]);
-            host.broadcastState();
-          }
-        } else {
-          // Client sends update to host
-          client.updateName(name);
-        }
-      }
     });
 
     // Ready button
@@ -115,14 +101,6 @@ class LobbyScreen {
     store.subscribe("gameId", (gameId) => {
       if (this.elements.gameCode) {
         this.elements.gameCode.textContent = gameId || "";
-      }
-    });
-
-    // Update name input when entering lobby
-    store.subscribe("gamePhase", (phase) => {
-      if (phase === "LOBBY" && this.elements.nameInput) {
-        const name = store.get("localPlayer.name") || storage.getUsername() || "";
-        this.elements.nameInput.value = name;
       }
     });
 
@@ -181,7 +159,7 @@ class LobbyScreen {
       .map(
         (player) => `
             <li class="${player.isReady ? "ready" : ""} ${player.isHost ? "host" : ""}" data-player-id="${player.id}">
-                <span class="player-name">${this.escapeHtml(player.name)}</span>
+                <span class="player-name ${player.isConnected === false ? "disconnected" : ""}">${this.escapeHtml(player.name)}</span>
             </li>
         `
       )

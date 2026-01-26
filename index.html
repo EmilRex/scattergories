@@ -31,7 +31,13 @@
         <h1 class="game-title">SCATTERGORIES</h1>
         <div class="header-info">
           <span id="connection-status" class="status-indicator"></span>
-          <span id="player-name-display"></span>
+          <input
+            type="text"
+            id="header-name-input"
+            class="retro-input header-name-input"
+            maxlength="12"
+            placeholder="YOUR NAME"
+          />
         </div>
       </header>
 
@@ -69,23 +75,14 @@
               <div class="game-code-display">
                 <span>CODE:</span>
                 <span id="lobby-game-code" class="code-text"></span>
-                <button id="btn-copy-code" class="retro-btn small">COPY</button>
+                <button id="btn-copy-code" class="retro-btn small">COPY CODE</button>
+                <button id="btn-copy-link" class="retro-btn small">COPY LINK</button>
               </div>
             </div>
 
             <div class="lobby-content">
               <div class="players-panel">
                 <h3>PLAYERS</h3>
-                <div class="lobby-name-section">
-                  <label for="lobby-name-input">YOUR NAME</label>
-                  <input
-                    type="text"
-                    id="lobby-name-input"
-                    class="retro-input"
-                    maxlength="12"
-                    placeholder="PLAYER"
-                  />
-                </div>
                 <ul id="player-list" class="player-list"></ul>
               </div>
 

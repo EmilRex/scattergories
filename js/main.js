@@ -143,11 +143,11 @@ async function joinGame(gameId, name) {
 }
 
 /**
- * Initialize connection status indicator
+ * Initialize connection status indicator and header name input
  */
 function initConnectionStatus() {
   const statusEl = document.getElementById("connection-status");
-  const nameDisplay = document.getElementById("player-name-display");
+  const headerNameInput = document.getElementById("header-name-input");
 
   store.subscribe("isConnected", (connected) => {
     if (statusEl) {
@@ -156,11 +156,42 @@ function initConnectionStatus() {
     }
   });
 
+  // Sync header name input with store
   store.subscribe("localPlayer.name", (name) => {
-    if (nameDisplay) {
-      nameDisplay.textContent = name || "";
+    if (headerNameInput && headerNameInput !== document.activeElement) {
+      headerNameInput.value = name || "";
     }
   });
+
+  // Handle header name input changes
+  headerNameInput?.addEventListener("input", (e) => {
+    const name = e.target.value.trim();
+    if (name) {
+      store.set("localPlayer.name", name);
+      storage.setUsername(name);
+
+      // Broadcast name change to others
+      if (store.get("isHost")) {
+        // Host updates their own player in the list
+        const players = store.get("players");
+        const hostPlayer = players.find((p) => p.isHost);
+        if (hostPlayer) {
+          hostPlayer.name = name;
+          store.set("players", [...players]);
+          host.broadcastState();
+        }
+      } else if (store.get("isConnected")) {
+        // Client sends update to host
+        client.updateName(name);
+      }
+    }
+  });
+
+  // Initialize header name input with saved value
+  const savedName = storage.getUsername();
+  if (savedName && headerNameInput) {
+    headerNameInput.value = savedName;
+  }
 }
 
 /**
@@ -185,20 +216,27 @@ function initTimerSync() {
 /**
  * Check URL for game ID to auto-join
  */
-function checkUrlForGame() {
+async function checkUrlForGame() {
   const gameId = getGameIdFromUrl();
 
   if (gameId && store.get("gamePhase") === PHASES.HOME) {
-    // Show join code section pre-filled
-    const joinCodeSection = document.getElementById("join-code-section");
-    const joinCodeInput = document.getElementById("join-code-input");
+    const name = generateDefaultName();
+    showToast(`Joining game ${gameId}...`, "info");
 
-    if (joinCodeSection && joinCodeInput) {
-      joinCodeSection.classList.remove("hidden");
-      joinCodeInput.value = gameId;
-      joinCodeInput.focus();
+    try {
+      await client.joinGame(gameId, name);
+      showToast("Connected!", "success");
+    } catch (err) {
+      showError(`Failed to join: ${err.message}`);
+      // Show join code section pre-filled as fallback
+      const joinCodeSection = document.getElementById("join-code-section");
+      const joinCodeInput = document.getElementById("join-code-input");
 
-      showToast(`Game code detected: ${gameId}`, "info");
+      if (joinCodeSection && joinCodeInput) {
+        joinCodeSection.classList.remove("hidden");
+        joinCodeInput.value = gameId;
+        joinCodeInput.focus();
+      }
     }
   }
 }

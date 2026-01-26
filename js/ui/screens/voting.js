@@ -171,14 +171,13 @@ class VotingScreen {
   }
 
   renderVoteCard(categoryIndex, answerData) {
-    const { playerName, answer, isOwn } = answerData;
+    const { answer, isOwn } = answerData;
     const answerId = `${categoryIndex}-${this.normalizeAnswer(answer)}`;
 
     return `
       <div class="vote-card ${isOwn ? "own-answer" : ""}" data-answer-id="${answerId}" data-category="${categoryIndex}" data-answer="${this.escapeAttr(answer)}">
         <div class="vote-answer">
           <span class="answer-text">${this.escapeHtml(answer)}</span>
-          <span class="vote-player">(${this.escapeHtml(playerName)})</span>
         </div>
         <div class="vote-controls">
           <button class="vote-btn upvote" data-vote="up" ${isOwn ? "disabled" : ""}>+</button>

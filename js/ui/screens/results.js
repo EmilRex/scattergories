@@ -132,13 +132,11 @@ class ResultsScreen {
 
       catResult.answers.forEach((answer) => {
         const isValid = answer.netVotes > 0;
-        const playerName = playerNames[answer.playerId] || "Unknown";
         const pointsText = isValid ? `+${answer.points}` : "0";
 
         html += `
                     <div class="score-entry ${isValid ? "valid" : "invalid"}">
                         <span class="entry-answer">${this.escapeHtml(answer.answer)}</span>
-                        <span class="entry-player">(${this.escapeHtml(playerName)})</span>
                         <span class="entry-votes">[${answer.netVotes >= 0 ? "+" : ""}${answer.netVotes}]</span>
                         <span class="entry-points">${pointsText}</span>
                     </div>
