@@ -8,6 +8,7 @@ const KEYS = {
   USERNAME: "username",
   THEME: "theme",
   SOUND_ENABLED: "soundEnabled",
+  CUMULATIVE_SCORES: "cumulativeScores",
 };
 
 /**
@@ -86,6 +87,20 @@ export function setTheme(theme) {
 }
 
 /**
+ * Get cumulative scores from localStorage
+ */
+export function getCumulativeScores() {
+  return get(KEYS.CUMULATIVE_SCORES, {});
+}
+
+/**
+ * Save cumulative scores to localStorage
+ */
+export function saveCumulativeScores(scores) {
+  return set(KEYS.CUMULATIVE_SCORES, scores);
+}
+
+/**
  * Check if localStorage is available
  */
 export function isAvailable() {
@@ -107,6 +122,8 @@ export default {
   setUsername,
   getTheme,
   setTheme,
+  getCumulativeScores,
+  saveCumulativeScores,
   isAvailable,
   KEYS,
 };

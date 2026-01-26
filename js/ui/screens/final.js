@@ -7,6 +7,7 @@ import host from "../../network/host.js";
 import gameState, { PHASES } from "../../state/game-state.js";
 import { removeGameIdFromUrl } from "../../utils/url.js";
 import peerManager from "../../network/peer-manager.js";
+import storage from "../../utils/storage.js";
 
 class FinalScreen {
   constructor() {
@@ -64,15 +65,16 @@ class FinalScreen {
   renderFinalResults() {
     const players = store.get("players");
     const scores = store.get("scores");
+    const cumulativeScores = store.get("cumulativeScores") || storage.getCumulativeScores();
 
-    // Sort players by score
+    // Sort players by game score for winner display
     const sortedPlayers = [...players].sort((a, b) => {
       const scoreA = scores[a.id] || 0;
       const scoreB = scores[b.id] || 0;
       return scoreB - scoreA;
     });
 
-    // Render winner
+    // Render winner (of this game)
     if (this.elements.winnerDisplay && sortedPlayers.length > 0) {
       const winner = sortedPlayers[0];
       const winnerScore = scores[winner.id] || 0;
@@ -84,20 +86,22 @@ class FinalScreen {
         this.elements.winnerDisplay.innerHTML = `
                     <h3 class="celebration">IT'S A TIE!</h3>
                     <p class="winner-names">${tiedWinners.map((p) => this.escapeHtml(p.name)).join(" & ")}</p>
-                    <p class="winner-score">${winnerScore} POINTS</p>
+                    <p class="winner-score">${winnerScore} POINTS THIS GAME</p>
                 `;
       } else {
         this.elements.winnerDisplay.innerHTML = `
                     <h3 class="celebration">WINNER!</h3>
                     <p class="winner-name">${this.escapeHtml(winner.name)}</p>
-                    <p class="winner-score">${winnerScore} POINTS</p>
+                    <p class="winner-score">${winnerScore} POINTS THIS GAME</p>
                 `;
       }
     }
 
-    // Render standings
+    // Render standings - show both this game and cumulative
     if (this.elements.finalStandingsList) {
-      this.elements.finalStandingsList.innerHTML = sortedPlayers
+      let html = '<div class="standings-section"><h4>THIS GAME</h4>';
+
+      html += sortedPlayers
         .map((player, index) => {
           const score = scores[player.id] || 0;
           const position = index + 1;
@@ -122,6 +126,43 @@ class FinalScreen {
                 `;
         })
         .join("");
+
+      html += "</div>";
+
+      // Show cumulative scores if any exist
+      if (Object.keys(cumulativeScores).length > 0) {
+        const sortedCumulative = Object.entries(cumulativeScores)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5);
+
+        html += '<div class="standings-section cumulative"><h4>ALL-TIME</h4>';
+
+        sortedCumulative.forEach(([name, score], index) => {
+          const position = index + 1;
+          let medal = "";
+          if (position === 1) {
+            medal = "1ST";
+          } else if (position === 2) {
+            medal = "2ND";
+          } else if (position === 3) {
+            medal = "3RD";
+          } else {
+            medal = `${position}TH`;
+          }
+
+          html += `
+                    <li>
+                        <span class="position">${medal}</span>
+                        <span class="player-name">${this.escapeHtml(name)}</span>
+                        <span class="player-score">${score} pts</span>
+                    </li>
+                `;
+        });
+
+        html += "</div>";
+      }
+
+      this.elements.finalStandingsList.innerHTML = html;
     }
 
     // Update play again button visibility

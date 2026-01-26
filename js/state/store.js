@@ -46,8 +46,11 @@ const initialState = {
   // Votes: { categoryIndex: { answer: { upvotes: [playerIds], downvotes: [playerIds] } } }
   votes: {},
 
-  // Scores: { playerId: totalScore }
+  // Scores: { playerId: totalScore } - current game
   scores: {},
+
+  // Cumulative scores across all games: { playerId: totalScore }
+  cumulativeScores: {},
 
   // Round results for display
   roundResults: [],
@@ -210,6 +213,7 @@ class Store {
       answers: this.state.answers,
       votes: this.state.votes,
       scores: this.state.scores,
+      cumulativeScores: this.state.cumulativeScores,
       roundResults: this.state.roundResults,
     };
   }

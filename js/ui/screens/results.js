@@ -26,6 +26,7 @@ class ResultsScreen {
       roundScores: document.getElementById("round-scores"),
       leaderboardList: document.getElementById("leaderboard-list"),
       nextRoundBtn: document.getElementById("btn-next-round"),
+      endGameBtn: document.getElementById("btn-end-game"),
     };
   }
 
@@ -33,9 +34,16 @@ class ResultsScreen {
     // Next round button
     this.elements.nextRoundBtn?.addEventListener("click", () => {
       if (store.get("isHost")) {
-        host.readyForNextRound();
+        host.proceedFromResults();
       } else {
         client.readyForNextRound();
+      }
+    });
+
+    // End game button (host only)
+    this.elements.endGameBtn?.addEventListener("click", () => {
+      if (store.get("isHost")) {
+        host.endGameEarly();
       }
     });
   }
@@ -45,36 +53,42 @@ class ResultsScreen {
     store.subscribe("gamePhase", (phase) => {
       if (phase === "RESULTS") {
         this.renderResults();
+        this.updateButtonVisibility();
       }
     });
 
-    // Update button text based on round
-    store.subscribe("currentRound", (round) => {
-      const totalRounds = store.get("totalRounds");
-      if (this.elements.nextRoundBtn) {
-        if (round >= totalRounds) {
-          this.elements.nextRoundBtn.textContent = "SEE FINAL RESULTS";
-        } else {
-          this.elements.nextRoundBtn.textContent = "NEXT ROUND";
-        }
-      }
+    // Update button visibility based on host status
+    store.subscribe("isHost", () => {
+      this.updateButtonVisibility();
     });
 
-    // Update button state
+    // Update button state for non-host
     store.subscribe("localPlayer.isReady", (isReady) => {
-      if (this.elements.nextRoundBtn) {
+      const isHost = store.get("isHost");
+      if (!isHost && this.elements.nextRoundBtn) {
         if (isReady) {
           this.elements.nextRoundBtn.textContent = "WAITING...";
           this.elements.nextRoundBtn.disabled = true;
         } else {
-          const round = store.get("currentRound");
-          const totalRounds = store.get("totalRounds");
-          this.elements.nextRoundBtn.textContent =
-            round >= totalRounds ? "SEE FINAL RESULTS" : "NEXT ROUND";
+          this.elements.nextRoundBtn.textContent = "READY";
           this.elements.nextRoundBtn.disabled = false;
         }
       }
     });
+  }
+
+  updateButtonVisibility() {
+    const isHost = store.get("isHost");
+
+    if (this.elements.nextRoundBtn) {
+      this.elements.nextRoundBtn.textContent = isHost ? "ANOTHER ROUND" : "READY";
+      this.elements.nextRoundBtn.disabled = false;
+    }
+
+    if (this.elements.endGameBtn) {
+      // Only host can end the game
+      this.elements.endGameBtn.style.display = isHost ? "inline-block" : "none";
+    }
   }
 
   renderResults() {
@@ -161,14 +175,17 @@ class ResultsScreen {
       return;
     }
 
-    // Sort players by total score
+    const cumulativeScores = store.get("cumulativeScores") || {};
+
+    // Sort players by game score
     const sortedPlayers = [...players].sort((a, b) => {
       const scoreA = scores[a.id] || 0;
       const scoreB = scores[b.id] || 0;
       return scoreB - scoreA;
     });
 
-    this.elements.leaderboardList.innerHTML = sortedPlayers
+    let html = '<div class="leaderboard-section"><h4>THIS GAME</h4>';
+    html += sortedPlayers
       .map((player, index) => {
         const score = scores[player.id] || 0;
         const position = index + 1;
@@ -189,6 +206,38 @@ class ResultsScreen {
             `;
       })
       .join("");
+    html += "</div>";
+
+    // Show cumulative scores if any exist
+    if (Object.keys(cumulativeScores).length > 0) {
+      // Sort by cumulative score
+      const sortedCumulative = Object.entries(cumulativeScores)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5); // Show top 5
+
+      html += '<div class="leaderboard-section cumulative"><h4>ALL-TIME</h4>';
+      sortedCumulative.forEach(([name, score], index) => {
+        const position = index + 1;
+        let positionClass = "";
+        if (position === 1) {
+          positionClass = "first";
+        } else if (position === 2) {
+          positionClass = "second";
+        } else if (position === 3) {
+          positionClass = "third";
+        }
+
+        html += `
+                <li class="${positionClass}">
+                    <span class="player-name">${this.escapeHtml(name)}</span>
+                    <span class="player-score">${score} pts</span>
+                </li>
+            `;
+      });
+      html += "</div>";
+    }
+
+    this.elements.leaderboardList.innerHTML = html;
   }
 
   escapeHtml(text) {

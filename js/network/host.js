@@ -11,6 +11,7 @@ import { getCategories } from "../game/categories.js";
 import { selectLetter } from "../game/round.js";
 import { calculateRoundResults } from "../game/scoring.js";
 import { setGameIdInUrl } from "../utils/url.js";
+import storage from "../utils/storage.js";
 
 class Host {
   constructor() {
@@ -301,15 +302,13 @@ class Host {
 
     // Handle based on current phase
     // Note: VOTING phase is now handled per-category via checkVotingCategoryReady()
+    // Note: RESULTS phase requires explicit host action (another round or end game)
     switch (phase) {
       case PHASES.LOBBY:
         this.startGame();
         break;
       case PHASES.ANSWERING:
         this.endAnswerPhase();
-        break;
-      case PHASES.RESULTS:
-        this.proceedFromResults();
         break;
     }
   }
@@ -318,10 +317,7 @@ class Host {
    * Start the game
    */
   startGame() {
-    const settings = store.get("settings");
-
     store.update({
-      totalRounds: settings.rounds,
       currentRound: 0,
       scores: {},
     });
@@ -332,6 +328,10 @@ class Host {
       scores[p.id] = 0;
     });
     store.set("scores", scores);
+
+    // Load cumulative scores from storage
+    const savedCumulative = storage.getCumulativeScores();
+    store.set("cumulativeScores", savedCumulative);
 
     this.usedLetters = [];
     this.startRound();
@@ -735,17 +735,32 @@ class Host {
   }
 
   /**
-   * Proceed from results to next round or game over
+   * Proceed from results to another round
    */
   proceedFromResults() {
-    const currentRound = store.get("currentRound");
-    const totalRounds = store.get("totalRounds");
+    this.startRound();
+  }
 
-    if (currentRound >= totalRounds) {
-      this.endGame();
-    } else {
-      this.startRound();
-    }
+  /**
+   * End the game early (host decision)
+   */
+  endGameEarly() {
+    // Accumulate current game scores into cumulative
+    const scores = store.get("scores");
+    const cumulativeScores = store.get("cumulativeScores") || {};
+    const players = store.get("players");
+
+    // Update cumulative scores using player names as keys (more stable than IDs)
+    players.forEach((p) => {
+      const playerScore = scores[p.id] || 0;
+      const playerName = p.name;
+      cumulativeScores[playerName] = (cumulativeScores[playerName] || 0) + playerScore;
+    });
+
+    store.set("cumulativeScores", cumulativeScores);
+    storage.saveCumulativeScores(cumulativeScores);
+
+    this.endGame();
   }
 
   /**
@@ -782,12 +797,16 @@ class Host {
       score: 0,
     }));
 
+    // Keep cumulative scores loaded
+    const cumulativeScores = store.get("cumulativeScores") || storage.getCumulativeScores();
+
     store.update({
       players,
       currentRound: 0,
       answers: {},
       votes: {},
       scores: {},
+      cumulativeScores,
       roundResults: [],
     });
 

@@ -104,29 +104,12 @@ body {
 }
 
 /* Home Screen */
-.title-art {
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-.ascii-art {
-  font-size: 0.6rem;
-  line-height: 1.2;
-  white-space: pre;
-}
-
 .home-actions {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
   max-width: 400px;
-}
-
-.username-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
 }
 
 .button-group {
@@ -184,6 +167,24 @@ body {
   border-bottom: 1px solid currentColor;
 }
 
+.lobby-name-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px dashed currentColor;
+}
+
+.lobby-name-section label {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.lobby-name-section input {
+  width: 100%;
+}
+
 .player-list {
   list-style: none;
   display: flex;
@@ -198,12 +199,13 @@ body {
   padding: 0.5rem;
 }
 
-.player-list li.ready {
-  opacity: 1;
+.player-list li.ready .player-name {
+  color: #00ff41;
+  text-shadow: 0 0 8px #00ff41;
 }
 
-.player-list li:not(.ready) {
-  opacity: 0.6;
+.player-list li:not(.ready) .player-name {
+  opacity: 0.5;
 }
 
 .setting-row {
@@ -454,6 +456,27 @@ body {
 .results-actions {
   display: flex;
   justify-content: center;
+  gap: 1rem;
+}
+
+/* Leaderboard sections */
+.leaderboard-section,
+.standings-section {
+  margin-bottom: 1rem;
+}
+
+.leaderboard-section h4,
+.standings-section h4 {
+  font-size: 0.7rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.8;
+}
+
+.leaderboard-section.cumulative,
+.standings-section.cumulative {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed currentColor;
 }
 
 /* Results - Category Scores */

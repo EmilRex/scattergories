@@ -7,6 +7,7 @@ import host from "../../network/host.js";
 import client from "../../network/client.js";
 import { copyGameUrlToClipboard } from "../../utils/url.js";
 import { showToast } from "../components/toast.js";
+import storage from "../../utils/storage.js";
 
 class LobbyScreen {
   constructor() {
@@ -26,9 +27,9 @@ class LobbyScreen {
     this.elements = {
       gameCode: document.getElementById("lobby-game-code"),
       copyCodeBtn: document.getElementById("btn-copy-code"),
+      nameInput: document.getElementById("lobby-name-input"),
       playerList: document.getElementById("player-list"),
       hostSettings: document.getElementById("host-settings"),
-      roundsSetting: document.getElementById("setting-rounds"),
       categoriesSetting: document.getElementById("setting-categories"),
       timerSetting: document.getElementById("setting-timer"),
       votingTimerSetting: document.getElementById("setting-voting-timer"),
@@ -43,6 +44,30 @@ class LobbyScreen {
       const gameId = store.get("gameId");
       const success = await copyGameUrlToClipboard(gameId);
       showToast(success ? "Link copied!" : "Failed to copy", success ? "success" : "error");
+    });
+
+    // Name input - update name on change
+    this.elements.nameInput?.addEventListener("input", (e) => {
+      const name = e.target.value.trim();
+      if (name) {
+        store.set("localPlayer.name", name);
+        storage.setUsername(name);
+
+        // Broadcast name change to others
+        if (store.get("isHost")) {
+          // Host updates their own player in the list
+          const players = store.get("players");
+          const hostPlayer = players.find((p) => p.isHost);
+          if (hostPlayer) {
+            hostPlayer.name = name;
+            store.set("players", [...players]);
+            host.broadcastState();
+          }
+        } else {
+          // Client sends update to host
+          client.updateName(name);
+        }
+      }
     });
 
     // Ready button
@@ -93,6 +118,14 @@ class LobbyScreen {
       }
     });
 
+    // Update name input when entering lobby
+    store.subscribe("gamePhase", (phase) => {
+      if (phase === "LOBBY" && this.elements.nameInput) {
+        const name = store.get("localPlayer.name") || storage.getUsername() || "";
+        this.elements.nameInput.value = name;
+      }
+    });
+
     // Update player list
     store.subscribe("players", (players) => {
       this.renderPlayerList(players);
@@ -101,9 +134,6 @@ class LobbyScreen {
 
     // Update settings display
     store.subscribe("settings", (settings) => {
-      if (this.elements.roundsSetting) {
-        this.elements.roundsSetting.textContent = settings.rounds;
-      }
       if (this.elements.categoriesSetting) {
         this.elements.categoriesSetting.textContent = settings.categoriesPerRound;
       }
@@ -152,7 +182,6 @@ class LobbyScreen {
         (player) => `
             <li class="${player.isReady ? "ready" : ""} ${player.isHost ? "host" : ""}" data-player-id="${player.id}">
                 <span class="player-name">${this.escapeHtml(player.name)}</span>
-                <span class="player-status">${player.isReady ? "" : "WAITING"}</span>
             </li>
         `
       )

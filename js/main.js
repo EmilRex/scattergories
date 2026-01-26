@@ -54,26 +54,31 @@ function init() {
 }
 
 /**
+ * Generate a default player name
+ */
+function generateDefaultName() {
+  const savedName = storage.getUsername();
+  if (savedName) {
+    return savedName;
+  }
+  // Generate random suffix for default name
+  const suffix = Math.floor(Math.random() * 1000);
+  return `PLAYER${suffix}`;
+}
+
+/**
  * Initialize home screen functionality
  */
 function initHomeScreen() {
-  const usernameInput = document.getElementById("username-input");
   const createGameBtn = document.getElementById("btn-create-game");
   const joinGameBtn = document.getElementById("btn-join-game");
   const joinCodeSection = document.getElementById("join-code-section");
   const joinCodeInput = document.getElementById("join-code-input");
   const connectBtn = document.getElementById("btn-connect");
 
-  // Username input - save on change
-  usernameInput?.addEventListener("input", (e) => {
-    const name = e.target.value.trim();
-    store.set("localPlayer.name", name);
-    storage.setUsername(name);
-  });
-
   // Create game button
   createGameBtn?.addEventListener("click", async () => {
-    const name = usernameInput?.value.trim() || "Host";
+    const name = generateDefaultName();
     createGameBtn.disabled = true;
     createGameBtn.textContent = "CREATING...";
 
@@ -96,7 +101,7 @@ function initHomeScreen() {
   // Connect button
   connectBtn?.addEventListener("click", async () => {
     const gameId = joinCodeInput?.value.trim().toUpperCase();
-    const name = usernameInput?.value.trim() || "Player";
+    const name = generateDefaultName();
 
     if (!gameId) {
       showError("Please enter a game code");
@@ -191,14 +196,7 @@ function checkUrlForGame() {
     if (joinCodeSection && joinCodeInput) {
       joinCodeSection.classList.remove("hidden");
       joinCodeInput.value = gameId;
-
-      // Focus username input so they can enter name then connect
-      const usernameInput = document.getElementById("username-input");
-      if (usernameInput && !usernameInput.value) {
-        usernameInput.focus();
-      } else {
-        joinCodeInput.focus();
-      }
+      joinCodeInput.focus();
 
       showToast(`Game code detected: ${gameId}`, "info");
     }
@@ -211,11 +209,7 @@ function checkUrlForGame() {
 function loadSavedUsername() {
   const savedName = storage.getUsername();
   if (savedName) {
-    const usernameInput = document.getElementById("username-input");
-    if (usernameInput) {
-      usernameInput.value = savedName;
-      store.set("localPlayer.name", savedName);
-    }
+    store.set("localPlayer.name", savedName);
   }
 }
 

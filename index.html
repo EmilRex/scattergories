@@ -40,29 +40,7 @@
         <!-- Home Screen -->
         <section id="screen-home" class="screen active">
           <div class="screen-content centered">
-            <div class="title-art">
-              <pre class="ascii-art">
-╔═══════════════════════════════════╗
-║   ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄   ║
-║   █ SCATTERGORIES ONLINE █   ║
-║   ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀   ║
-╚═══════════════════════════════════╝
-                        </pre
-              >
-            </div>
-
             <div class="home-actions">
-              <div class="username-section">
-                <label for="username-input">ENTER YOUR NAME</label>
-                <input
-                  type="text"
-                  id="username-input"
-                  class="retro-input"
-                  maxlength="12"
-                  placeholder="PLAYER"
-                />
-              </div>
-
               <div class="button-group">
                 <button id="btn-create-game" class="retro-btn primary">CREATE GAME</button>
                 <button id="btn-join-game" class="retro-btn secondary">JOIN GAME</button>
@@ -98,19 +76,21 @@
             <div class="lobby-content">
               <div class="players-panel">
                 <h3>PLAYERS</h3>
+                <div class="lobby-name-section">
+                  <label for="lobby-name-input">YOUR NAME</label>
+                  <input
+                    type="text"
+                    id="lobby-name-input"
+                    class="retro-input"
+                    maxlength="12"
+                    placeholder="PLAYER"
+                  />
+                </div>
                 <ul id="player-list" class="player-list"></ul>
               </div>
 
               <div class="settings-panel" id="host-settings">
                 <h3>SETTINGS</h3>
-                <div class="setting-row">
-                  <label>ROUNDS</label>
-                  <div class="setting-control">
-                    <button class="retro-btn small" data-setting="rounds" data-delta="-1">-</button>
-                    <span id="setting-rounds">3</span>
-                    <button class="retro-btn small" data-setting="rounds" data-delta="1">+</button>
-                  </div>
-                </div>
                 <div class="setting-row">
                   <label>CATEGORIES</label>
                   <div class="setting-control">
@@ -220,7 +200,8 @@
             </div>
 
             <div class="results-actions">
-              <button id="btn-next-round" class="retro-btn primary large">NEXT ROUND</button>
+              <button id="btn-next-round" class="retro-btn primary large">ANOTHER ROUND</button>
+              <button id="btn-end-game" class="retro-btn secondary large">END GAME</button>
             </div>
           </div>
         </section>
