@@ -83,18 +83,27 @@ class PeerManager {
         return;
       }
 
+      let settled = false;
+
       const conn = this.peer.connect(hostId, {
         reliable: true,
       });
 
       const timeoutId = setTimeout(() => {
-        if (!conn.open) {
+        if (!settled) {
+          settled = true;
+          conn.close();
           reject(new Error("Connection timeout"));
         }
-      }, 10000);
+      }, TIMING.CONNECTION_TIMEOUT);
 
       conn.on("open", () => {
         clearTimeout(timeoutId);
+        if (settled) {
+          conn.close();
+          return;
+        }
+        settled = true;
         console.log("Connected to host:", hostId);
         this.connections.set(hostId, conn);
         this.setupConnectionHandlers(conn);
@@ -103,6 +112,10 @@ class PeerManager {
 
       conn.on("error", (err) => {
         clearTimeout(timeoutId);
+        if (settled) {
+          return;
+        }
+        settled = true;
         console.error("Connection error:", err);
         reject(err);
       });

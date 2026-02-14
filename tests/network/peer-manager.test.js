@@ -100,6 +100,57 @@ describe("peer-manager", () => {
       const conn = await peerManager.connectTo("HOST04");
       expect(conn.open).toBe(true);
     });
+
+    it("rejects with timeout error when connection takes too long", async () => {
+      vi.useFakeTimers();
+
+      // Manually create a connection that never auto-opens
+      peerManager.peer.connect = (peerId) => {
+        const conn = new MockDataConnection(peerId, peerManager.peer.id);
+        // Do NOT schedule auto-open
+        return conn;
+      };
+
+      const connectPromise = peerManager.connectTo("SLOW_HOST");
+      vi.advanceTimersByTime(30000);
+
+      await expect(connectPromise).rejects.toThrow("Connection timeout");
+    });
+
+    it("closes the pending connection on timeout", async () => {
+      vi.useFakeTimers();
+
+      let capturedConn;
+      peerManager.peer.connect = (peerId) => {
+        capturedConn = new MockDataConnection(peerId, peerManager.peer.id);
+        return capturedConn;
+      };
+
+      const connectPromise = peerManager.connectTo("ZOMBIE_HOST");
+      vi.advanceTimersByTime(30000);
+
+      await expect(connectPromise).rejects.toThrow("Connection timeout");
+      expect(capturedConn.open).toBe(false);
+    });
+
+    it("ignores late open after timeout has fired", async () => {
+      vi.useFakeTimers();
+
+      let capturedConn;
+      peerManager.peer.connect = (peerId) => {
+        capturedConn = new MockDataConnection(peerId, peerManager.peer.id);
+        return capturedConn;
+      };
+
+      const connectPromise = peerManager.connectTo("LATE_HOST");
+      vi.advanceTimersByTime(30000);
+      await expect(connectPromise).rejects.toThrow("Connection timeout");
+
+      // Simulate late open — should not store the connection
+      capturedConn._emit("open");
+      expect(peerManager.connections.has("LATE_HOST")).toBe(false);
+      expect(capturedConn.open).toBe(false);
+    });
   });
 
   describe("handleIncomingConnection", () => {
