@@ -50,6 +50,9 @@ function init() {
   // Load saved username
   loadSavedUsername();
 
+  // Display version in footer
+  initVersion();
+
   console.log("Scattergories initialized!");
 }
 
@@ -248,6 +251,26 @@ function loadSavedUsername() {
   const savedName = storage.getUsername();
   if (savedName) {
     store.set("localPlayer.name", savedName);
+  }
+}
+
+/**
+ * Display version hash in footer
+ */
+async function initVersion() {
+  try {
+    const { default: version } = await import("./version.js");
+    const footer = document.getElementById("version-footer");
+    if (footer && version) {
+      const link = document.createElement("a");
+      link.href = `https://github.com/EmilRex/scattergories/commit/${version}`;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = version;
+      footer.appendChild(link);
+    }
+  } catch {
+    // version.js doesn't exist in local dev — ignore
   }
 }
 

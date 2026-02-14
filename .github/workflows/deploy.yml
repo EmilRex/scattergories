@@ -26,6 +26,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Stamp version
+        run: echo "export default \"$(git rev-parse --short HEAD)\";" > js/version.js
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
